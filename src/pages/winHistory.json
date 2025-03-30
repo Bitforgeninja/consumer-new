@@ -1,0 +1,54 @@
+{
+    "wins": [
+      {
+        "game": "Single Digit",
+        "betType": "Open",
+        "points": 50,
+        "winAmount": 500,
+        "date": "2025-01-01T10:00:00Z"
+      },
+      {
+        "game": "Jodi Digit",
+        "betType": "Close",
+        "points": 100,
+        "winAmount": 1200,
+        "date": "2025-01-02T11:00:00Z"
+      },
+      {
+        "game": "Single Pana",
+        "betType": "Open",
+        "points": 75,
+        "winAmount": 750,
+        "date": "2025-01-03T12:00:00Z"
+      },
+      {
+        "game": "Double Pana",
+        "betType": "Close",
+        "points": 90,
+        "winAmount": 900,
+        "date": "2025-01-04T13:00:00Z"
+      },
+      {
+        "game": "Triple Pana",
+        "betType": "Open",
+        "points": 120,
+        "winAmount": 1800,
+        "date": "2025-01-05T14:00:00Z"
+      },
+      {
+        "game": "Jodi Digit",
+        "betType": "Open",
+        "points": 200,
+        "winAmount": 2400,
+        "date": "2025-01-06T15:00:00Z"
+      },
+      {
+        "game": "Single Digit",
+        "betType": "Close",
+        "points": 300,
+        "winAmount": 3600,
+        "date": "2025-01-07T16:00:00Z"
+      }
+    ]
+  }
+  

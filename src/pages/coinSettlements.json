@@ -1,0 +1,65 @@
+{
+    "transactions": [
+      {
+        "transactionId": "TXN12345",
+        "amount": 1000,
+        "status": "Pending",
+        "date": "2025-01-01T10:00:00Z"
+      },
+      {
+        "transactionId": "TXN12346",
+        "amount": 2000,
+        "status": "Approved",
+        "date": "2025-01-02T11:00:00Z"
+      },
+      {
+        "transactionId": "TXN12347",
+        "amount": 1500,
+        "status": "Rejected",
+        "date": "2025-01-03T12:00:00Z"
+      },
+      {
+        "transactionId": "TXN12348",
+        "amount": 500,
+        "status": "Pending",
+        "date": "2025-01-04T13:00:00Z"
+      },
+      {
+        "transactionId": "TXN12349",
+        "amount": 3000,
+        "status": "Approved",
+        "date": "2025-01-05T14:00:00Z"
+      },
+      {
+        "transactionId": "TXN12350",
+        "amount": 750,
+        "status": "Rejected",
+        "date": "2025-01-06T15:00:00Z"
+      },
+      {
+        "transactionId": "TXN12351",
+        "amount": 2500,
+        "status": "Pending",
+        "date": "2025-01-07T16:00:00Z"
+      },
+      {
+        "transactionId": "TXN12352",
+        "amount": 1000,
+        "status": "Approved",
+        "date": "2025-01-08T17:00:00Z"
+      },
+      {
+        "transactionId": "TXN12353",
+        "amount": 1800,
+        "status": "Rejected",
+        "date": "2025-01-09T18:00:00Z"
+      },
+      {
+        "transactionId": "TXN12354",
+        "amount": 4000,
+        "status": "Approved",
+        "date": "2025-01-10T19:00:00Z"
+      }
+    ]
+  }
+  

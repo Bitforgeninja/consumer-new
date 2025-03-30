@@ -1,0 +1,33 @@
+{
+    "bets": [
+      {
+        "game": "Single Digit",
+        "betType": "Open",
+        "points": 120,
+        "isWin": true,
+        "date": "2025-01-01T14:00:00Z"
+      },
+      {
+        "game": "Jodi Digit",
+        "betType": "Close",
+        "points": 150,
+        "isWin": false,
+        "date": "2025-01-02T10:30:00Z"
+      },
+      {
+        "game": "Single Pana",
+        "betType": "Open",
+        "points": 100,
+        "isWin": true,
+        "date": "2025-01-03T18:00:00Z"
+      },
+      {
+        "game": "Double Pana",
+        "betType": "Close",
+        "points": 90,
+        "isWin": false,
+        "date": "2025-01-04T15:00:00Z"
+      }
+    ]
+  }
+  
