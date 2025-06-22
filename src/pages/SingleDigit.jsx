@@ -2,6 +2,24 @@ import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 
+// Utility to calculate time in minutes
+const getTimeInMinutes = (timeStr) => {
+  if (!timeStr) return 0;
+  const [time, ampm] = timeStr.trim().split(" ");
+  let [hours, minutes] = time.split(":").map(Number);
+  if (ampm === "PM" && hours < 12) hours += 12;
+  if (ampm === "AM" && hours === 12) hours = 0;
+  return hours * 60 + minutes;
+};
+
+// Check if Open betting is allowed (closes 10 min before open time)
+const isOpenBettingAllowed = (openTime) => {
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  const openMinutes = getTimeInMinutes(openTime);
+  return currentMinutes < openMinutes - 10;
+};
+
 const SingleDigit = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -14,7 +32,7 @@ const SingleDigit = () => {
   const [betType, setBetType] = useState("Open");
   const [markets, setMarkets] = useState([]);
   const [currentMarket, setCurrentMarket] = useState(null);
-  const marketName = location.state?.marketName || "Milan Day"; // Default to "Milan Day" if not provided
+  const marketName = location.state?.marketName || "Milan Day";
   const gameName = "Single Digit";
 
   useEffect(() => {
@@ -23,23 +41,12 @@ const SingleDigit = () => {
     fetchPlacedBets();
   }, []);
 
-  // Fetch markets data from API
   const fetchMarkets = async () => {
     try {
-      const response = await axios.get(
-        "https://backend-pbn5.onrender.com/api/markets"
-      );
-      
+      const response = await axios.get("https://backend-pbn5.onrender.com/api/markets");
       setMarkets(response.data);
-      
-      // Find the current market by name
-      const market = response.data.find(
-        (m) => m.name.toLowerCase() === marketName.toLowerCase()
-      );
-      
-      if (market) {
-        setCurrentMarket(market);
-      }
+      const market = response.data.find((m) => m.name.toLowerCase() === marketName.toLowerCase());
+      if (market) setCurrentMarket(market);
     } catch (error) {
       console.error("Error fetching markets:", error);
       setError("Failed to fetch markets!");
@@ -53,15 +60,12 @@ const SingleDigit = () => {
       return;
     }
     try {
-      const response = await axios.get(
-        "https://backend-pbn5.onrender.com/api/wallet/balance",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await axios.get("https://backend-pbn5.onrender.com/api/wallet/balance", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
       setCoins(response.data.walletBalance);
     } catch (error) {
       console.error("Error fetching wallet balance:", error);
@@ -76,16 +80,12 @@ const SingleDigit = () => {
       return;
     }
     try {
-      const response = await axios.get(
-        "https://backend-pbn5.onrender.com/api/bets/user/",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      // console.log(response);
+      const response = await axios.get("https://backend-pbn5.onrender.com/api/bets/user/", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
       const filteredBets = response.data.bets.filter(
         (bet) => bet.marketName === marketName && bet.gameName === gameName && bet.status === "pending"
       );
@@ -96,15 +96,10 @@ const SingleDigit = () => {
     }
   };
 
-  // Check if inputs should be disabled
-  const isInputDisabled = () => {
-    if (!currentMarket) return false;
-    return betType === "Open" && currentMarket.openBetting === false;
-  };
-
   const handleAddBet = () => {
-    if (isInputDisabled()) {
-      setError("Open betting is currently closed for this market!");
+    // ✅ Open betting cutoff check
+    if (betType === "Open" && currentMarket && !isOpenBettingAllowed(currentMarket.openTime)) {
+      setError(`⚠️ Open betting is currently closed for ${marketName}`);
       return;
     }
 
@@ -141,11 +136,7 @@ const SingleDigit = () => {
   };
 
   const handlePlaceBet = async () => {
-    const totalPoints = bets.reduce(
-      (sum, bet) => sum + parseInt(bet.points, 10),
-      0
-    );
-
+    const totalPoints = bets.reduce((sum, bet) => sum + parseInt(bet.points, 10), 0);
     if (totalPoints === 0) {
       setError("No bets to place!");
       return;
@@ -192,7 +183,7 @@ const SingleDigit = () => {
       setCoins(coins - totalPoints);
       setBets([]);
       setError("");
-      fetchPlacedBets(); // Refetch placed bets to update the table
+      fetchPlacedBets();
       alert("Submitted successfully!");
     } catch (error) {
       console.error("Error submitting:", error);
@@ -207,19 +198,8 @@ const SingleDigit = () => {
           onClick={() => navigate(-1)}
           className="mr-3 bg-transparent text-white p-1 rounded-full hover:bg-gray-700 transition duration-300"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth="2"
-            stroke="currentColor"
-            className="w-5 h-5"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M15.75 19.5L8.25 12l7.5-7.5"
-            />
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-5 h-5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
           </svg>
         </button>
         <h2 className="text-lg font-bold">Single Digit</h2>
@@ -228,8 +208,8 @@ const SingleDigit = () => {
         </div>
       </header>
 
-      {/* Market status banner */}
-      {currentMarket && betType === "Open" && !currentMarket.openBetting && (
+      {/* Market status message */}
+      {betType === "Open" && currentMarket && !isOpenBettingAllowed(currentMarket.openTime) && (
         <div className="bg-red-600 text-white px-3 py-2 rounded-md text-center text-sm mb-4">
           ⚠️ Open betting is currently closed for {marketName}
         </div>
@@ -240,9 +220,7 @@ const SingleDigit = () => {
         <button
           onClick={() => setBetType("Open")}
           className={`px-4 py-1 rounded-l-md font-bold text-sm ${
-            betType === "Open"
-              ? "bg-purple-600 text-white"
-              : "bg-gray-800 text-gray-400"
+            betType === "Open" ? "bg-purple-600 text-white" : "bg-gray-800 text-gray-400"
           } hover:bg-purple-700 transition duration-300`}
         >
           Open
@@ -250,58 +228,44 @@ const SingleDigit = () => {
         <button
           onClick={() => setBetType("Close")}
           className={`px-4 py-1 rounded-r-md font-bold text-sm ${
-            betType === "Close"
-              ? "bg-purple-600 text-white"
-              : "bg-gray-800 text-gray-400"
+            betType === "Close" ? "bg-purple-600 text-white" : "bg-gray-800 text-gray-400"
           } hover:bg-purple-700 transition duration-300`}
         >
           Close
         </button>
       </div>
 
-      {/* Input for digit and points */}
+      {/* Input Fields */}
       <div className="grid grid-cols-3 gap-3 mb-4">
         <input
           type="number"
           placeholder="Enter Digit"
           value={digit}
           onChange={(e) => setDigit(e.target.value)}
-          disabled={isInputDisabled()}
-          className={`col-span-1 px-3 py-2 bg-white text-black rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-600 ${
-            isInputDisabled() ? "opacity-50 cursor-not-allowed" : ""
-          }`}
+          className="col-span-1 px-3 py-2 bg-white text-black rounded-md text-sm"
         />
         <input
           type="number"
           placeholder="Enter Points"
           value={points}
           onChange={(e) => setPoints(e.target.value)}
-          disabled={isInputDisabled()}
-          className={`col-span-1 px-3 py-2 bg-white text-black rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-600 ${
-            isInputDisabled() ? "opacity-50 cursor-not-allowed" : ""
-          }`}
+          className="col-span-1 px-3 py-2 bg-white text-black rounded-md text-sm"
         />
         <button
           onClick={handleAddBet}
-          disabled={isInputDisabled()}
-          className={`col-span-1 bg-purple-600 hover:bg-purple-700 px-3 py-2 rounded-md font-bold text-sm transition duration-300 ${
-            isInputDisabled() ? "opacity-50 cursor-not-allowed" : ""
-          }`}
+          className="col-span-1 bg-purple-600 hover:bg-purple-700 px-3 py-2 rounded-md font-bold text-sm transition duration-300"
         >
           Proceed
         </button>
       </div>
 
-      {/* Error message */}
+      {/* Error Message */}
       {error && (
-        <div className="bg-red-600 text-white px-3 py-2 rounded-md text-center text-sm mb-4">
-          {error}
-        </div>
+        <div className="bg-red-600 text-white px-3 py-2 rounded-md text-center text-sm mb-4">{error}</div>
       )}
 
-      {/* Current Bets Table */}
+      {/* Current Bets */}
       <div className="bg-gray-800 p-4 rounded-md shadow-md mb-4">
-        {/* <h3 className="text-base font-bold mb-3">Current Bets</h3> */}
         <table className="w-full table-auto mb-3 text-sm">
           <thead>
             <tr className="bg-gray-700 text-left">
@@ -320,7 +284,7 @@ const SingleDigit = () => {
                 <td className="px-3 py-2 text-right">
                   <button
                     onClick={() => handleDeleteBet(index)}
-                    className="bg-red-600 hover:bg-red-700 px-2 py-1 rounded-md text-white font-bold text-xs transition duration-300"
+                    className="bg-red-600 hover:bg-red-700 px-2 py-1 rounded-md text-white font-bold text-xs"
                   >
                     Delete
                   </button>
@@ -331,18 +295,18 @@ const SingleDigit = () => {
         </table>
       </div>
 
-      {/* Place Bet button */}
+      {/* Submit Button */}
       <button
         onClick={handlePlaceBet}
         disabled={bets.length === 0}
-        className={`w-full bg-green-600 hover:bg-green-700 py-2 rounded-md font-bold text-sm transition duration-300 mb-4 ${
+        className={`w-full bg-green-600 hover:bg-green-700 py-2 rounded-md font-bold text-sm mb-4 ${
           bets.length === 0 ? "opacity-50 cursor-not-allowed" : ""
         }`}
       >
         Submit
       </button>
 
-      {/* Placed Bets Table */}
+      {/* Submitted Bets */}
       <div className="bg-gray-800 p-4 rounded-md shadow-md">
         <h3 className="text-base font-bold mb-3">Submitted</h3>
         <table className="w-full table-auto text-sm">
