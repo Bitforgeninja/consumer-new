@@ -2,6 +2,24 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 
+// 🔧 Converts "9:45 PM" to total minutes of the day
+const getTimeInMinutes = (timeStr) => {
+  if (!timeStr) return 0;
+  const [time, ampm] = timeStr.trim().split(" ");
+  let [hours, minutes] = time.split(":").map(Number);
+  if (ampm === "PM" && hours < 12) hours += 12;
+  if (ampm === "AM" && hours === 12) hours = 0;
+  return hours * 60 + minutes;
+};
+
+// ✅ Determines if Open betting is currently allowed
+const isOpenBettingAllowed = (openTime) => {
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  const openMinutes = getTimeInMinutes(openTime);
+  return currentMinutes < openMinutes - 10;
+};
+
 const JodiDigit = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -12,12 +30,32 @@ const JodiDigit = () => {
   const [coins, setCoins] = useState(0);
   const [error, setError] = useState("");
   const [betType, setBetType] = useState("Open");
+  const [currentMarket, setCurrentMarket] = useState(null);
+  const [markets, setMarkets] = useState([]);
+
   const marketName = location.state?.marketName || "Milan Day";
   const gameName = "Jodi Digit";
 
   useEffect(() => {
     fetchWalletBalanceAndBets();
+    fetchMarkets();
   }, [marketName, gameName]);
+
+  const fetchMarkets = async () => {
+    try {
+      const response = await axios.get("https://backend-pbn5.onrender.com/api/markets");
+      setMarkets(response.data);
+      const market = response.data.find(
+        (m) => m.name.toLowerCase() === marketName.toLowerCase()
+      );
+      if (market) {
+        setCurrentMarket(market);
+      }
+    } catch (error) {
+      console.error("Error fetching markets:", error);
+      setError("Failed to fetch market data!");
+    }
+  };
 
   const fetchWalletBalanceAndBets = async () => {
     const token = localStorage.getItem("token");
@@ -48,7 +86,10 @@ const JodiDigit = () => {
       setCoins(walletData.data.walletBalance);
 
       const filteredBets = betsData.data.bets.filter(
-        (bet) => bet.marketName === marketName && bet.gameName === gameName && bet.status === "pending"
+        (bet) =>
+          bet.marketName === marketName &&
+          bet.gameName === gameName &&
+          bet.status === "pending"
       );
       setPlacedBets(filteredBets);
     } catch (error) {
@@ -58,6 +99,16 @@ const JodiDigit = () => {
   };
 
   const handleAddBet = () => {
+    // ✅ Block Open betting 10 min before market opens
+    if (
+      betType === "Open" &&
+      currentMarket &&
+      !isOpenBettingAllowed(currentMarket.openTime)
+    ) {
+      setError(`⚠️ Open betting is currently closed for ${marketName}`);
+      return;
+    }
+
     if (!input || !points) {
       setError("Both input and points are required!");
       return;
@@ -91,7 +142,10 @@ const JodiDigit = () => {
   };
 
   const handlePlaceBet = async () => {
-    const totalPoints = bets.reduce((sum, bet) => sum + parseInt(bet.points, 10), 0);
+    const totalPoints = bets.reduce(
+      (sum, bet) => sum + parseInt(bet.points, 10),
+      0
+    );
 
     if (totalPoints === 0) {
       setError("No bets to place!");
@@ -133,7 +187,7 @@ const JodiDigit = () => {
       );
       setCoins(coins - totalPoints);
       setBets([]);
-      fetchWalletBalanceAndBets(); // Refetch data after placing bets
+      fetchWalletBalanceAndBets();
       setError("");
       alert("Submitted successfully!");
     } catch (error) {
@@ -170,10 +224,16 @@ const JodiDigit = () => {
         </div>
       </header>
 
+      {betType === "Open" &&
+        currentMarket &&
+        !isOpenBettingAllowed(currentMarket.openTime) && (
+          <div className="bg-red-600 text-white px-3 py-2 rounded-md text-center mb-4 text-sm">
+            ⚠️ Open betting is currently closed for {marketName}
+          </div>
+        )}
+
       <div className="flex justify-center mb-4">
-        <button
-          className="px-5 py-1 rounded-md text-sm font-medium bg-purple-600 text-white hover:bg-purple-700 transition duration-200"
-        >
+        <button className="px-5 py-1 rounded-md text-sm font-medium bg-purple-600 text-white hover:bg-purple-700 transition duration-200">
           Open
         </button>
       </div>
@@ -265,10 +325,15 @@ const JodiDigit = () => {
                 <td className="px-3 py-1">
                   <span
                     className={`font-medium ${
-                      bet.status === "win" ? "text-green-500" : "text-yellow-500"
+                      bet.status === "win"
+                        ? "text-green-500"
+                        : "text-yellow-500"
                     }`}
                   >
-                    {bet.status ? bet.status.charAt(0).toUpperCase() + bet.status.slice(1) : "Pending"}
+                    {bet.status
+                      ? bet.status.charAt(0).toUpperCase() +
+                        bet.status.slice(1)
+                      : "Pending"}
                   </span>
                 </td>
               </tr>
