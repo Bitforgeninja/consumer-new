@@ -12,7 +12,13 @@ const HomePage = () => {
   const [bannerImageUrl, setBannerImageUrl] = useState("");
   const [marketClosedMessage, setMarketClosedMessage] = useState("");
 
+  const now = new Date();
+  const currentHours = now.getHours();
+  const currentMinutesInDay = currentHours * 60 + now.getMinutes();
+
+  // Format result or hide after midnight
   const formatMarketResult = (results) => {
+    if (currentHours >= 0 && currentHours < 6) return "***-**-***";
     if (!results) return "xxx-xx-xxx";
     const open = results.openNumber?.padEnd(3, "x").slice(0, 3) || "xxx";
     const close = results.closeNumber?.padEnd(3, "x").slice(0, 3) || "xxx";
@@ -21,6 +27,7 @@ const HomePage = () => {
     return `${open}-${jodi}-${close}`;
   };
 
+  // Converts AM/PM time to minutes
   const getTimeInMinutes = (timeStr) => {
     if (!timeStr) return 0;
     const [time, ampm] = timeStr.split(" ");
@@ -29,9 +36,6 @@ const HomePage = () => {
     if (ampm === "AM" && hours === 12) hours = 0;
     return hours * 60 + minutes;
   };
-
-  const now = new Date();
-  const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -70,6 +74,32 @@ const HomePage = () => {
 
     fetchData();
   }, []);
+
+  // Show only message from 12 AM to 6 AM
+  if (currentHours >= 0 && currentHours < 6) {
+    return (
+      <div className="font-sans bg-gray-900 text-white p-4 min-h-screen">
+        <div className="my-4 flex justify-center items-center overflow-hidden rounded-lg shadow-lg max-w-3xl mx-auto">
+          <img
+            src={
+              bannerImageUrl ||
+              "https://via.placeholder.com/1000x400?text=Loading+Image"
+            }
+            alt="Casino Banner"
+            className="object-cover rounded-lg w-full max-h-48"
+          />
+        </div>
+
+        <marquee className="text-sm font-medium bg-gray-800 py-2">
+          100% Genuine! Deposits and Withdrawals available 24x7
+        </marquee>
+
+        <h2 className="text-xl text-center font-bold mt-6 mb-4">
+          Markets will be open after 6 AM
+        </h2>
+      </div>
+    );
+  }
 
   return (
     <div className="font-sans bg-gray-900 text-white p-4 min-h-screen">
@@ -122,17 +152,17 @@ const HomePage = () => {
             <p className="text-center text-gray-400">No markets available.</p>
           ) : (
             allMarkets.map((market) => {
-              const open = getTimeInMinutes(market.openTime);
-              const close = getTimeInMinutes(market.closeTime);
-              const openCutoff = open - 10;
-              const closeCutoff = close - 10;
+              const openMinutes = getTimeInMinutes(market.openTime);
+              const closeMinutes = getTimeInMinutes(market.closeTime);
+              const openCutoff = openMinutes - 10;
+              const closeCutoff = closeMinutes - 10;
 
               let bettingStatus = "Closed";
-              if (currentMinutes < openCutoff) {
+              if (currentMinutesInDay < openCutoff) {
                 bettingStatus = "Full";
               } else if (
-                currentMinutes >= openCutoff &&
-                currentMinutes < closeCutoff
+                currentMinutesInDay >= openCutoff &&
+                currentMinutesInDay < closeCutoff
               ) {
                 bettingStatus = "CloseOnly";
               }
