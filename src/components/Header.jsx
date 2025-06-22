@@ -16,7 +16,6 @@ const Header = () => {
   useEffect(() => {
     const fetchWalletBalance = async () => {
       const token = localStorage.getItem('token');
-      // console.log(token)
       if (token) {
         setIsLoggedIn(true);
         try {
@@ -52,7 +51,7 @@ const Header = () => {
           className="text-2xl font-bold cursor-pointer"
           onClick={() => navigate('/')}
         >
-          DP Matka King
+          D7 Matka
         </h1>
       </div>
       <div className="flex items-center space-x-4">
