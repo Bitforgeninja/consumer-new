@@ -158,13 +158,16 @@ const HomePage = () => {
               const closeCutoff = closeMinutes - 10;
 
               let bettingStatus = "Closed";
+
               if (currentMinutesInDay < openCutoff) {
-                bettingStatus = "Full";
+                bettingStatus = "Full"; // Full betting allowed
               } else if (
-                currentMinutesInDay >= openCutoff &&
+                currentMinutesInDay >= openMinutes &&
                 currentMinutesInDay < closeCutoff
               ) {
-                bettingStatus = "CloseOnly";
+                bettingStatus = "CloseOnly"; // Only close bet active
+              } else {
+                bettingStatus = "Closed"; // All closed
               }
 
               const statusText =
