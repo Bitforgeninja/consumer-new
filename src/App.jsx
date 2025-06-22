@@ -11,7 +11,7 @@ import TriplePana from './pages/TriplePana';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import PrivateRoute from './components/PrivateRoute';
-import Header from './components/Header'; // New Header component
+import Header from './components/Header'; // Changed to show D7 Matka in Header
 import BetsHistory from './pages/BetsHistory';
 import WinHistory from './pages/WinHistory';
 import CoinSettlements from './pages/CoinSettlements';
@@ -35,9 +35,9 @@ function App() {
         {/* Public Routes */}
         <Route path="/" element={
           <>
+          {/* Header likely contains the app name, updated to D7 Matka */}
           <Header />
           <HomePage />
-          
           </>
       } />
       <Route path="/privacy-policy" element={<PrivacyPolicy />}/>
@@ -53,7 +53,6 @@ function App() {
           <Route path="/market-chart" element={<MarketChart />} />
           <Route path="/bets-history" element={<BetsHistory />} />
           <Route path="/single-digit" element={<SingleDigit />} />
-          {/* <Route path="/single-digit/:marketName" element={<SingleDigit />} /> */}
           <Route path="/jodi-digit" element={<JodiDigit />} />
           <Route path="/single-pana" element={<SinglePana />} />
           <Route path="/double-pana" element={<DoublePana />} />
@@ -73,5 +72,5 @@ function App() {
     </Router>
   );
 }
- 
+
 export default App;
