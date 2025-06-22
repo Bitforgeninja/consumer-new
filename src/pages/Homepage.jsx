@@ -1,31 +1,32 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlay } from '@fortawesome/free-solid-svg-icons';
-import { faWhatsapp } from '@fortawesome/free-brands-svg-icons';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPlay } from "@fortawesome/free-solid-svg-icons";
+import { faWhatsapp } from "@fortawesome/free-brands-svg-icons";
 
 const HomePage = () => {
   const navigate = useNavigate();
   const [allMarkets, setAllMarkets] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [bannerImageUrl, setBannerImageUrl] = useState('');
+  const [bannerImageUrl, setBannerImageUrl] = useState("");
   const [marketClosedMessage, setMarketClosedMessage] = useState("");
 
   const formatMarketResult = (results) => {
     if (!results) return "xxx-xx-xxx";
-    const open = results.openNumber?.padEnd(3, 'x').slice(0, 3) || "xxx";
-    const close = results.closeNumber?.padEnd(3, 'x').slice(0, 3) || "xxx";
-    const jodi = results.jodiResult?.toString().padEnd(2, 'x').slice(0, 2) || "xx";
+    const open = results.openNumber?.padEnd(3, "x").slice(0, 3) || "xxx";
+    const close = results.closeNumber?.padEnd(3, "x").slice(0, 3) || "xxx";
+    const jodi =
+      results.jodiResult?.toString().padEnd(2, "x").slice(0, 2) || "xx";
     return `${open}-${jodi}-${close}`;
   };
 
   const getTimeInMinutes = (timeStr) => {
     if (!timeStr) return 0;
-    const [time, ampm] = timeStr.split(' ');
-    let [hours, minutes] = time.split(':').map(Number);
-    if (ampm === 'PM' && hours < 12) hours += 12;
-    if (ampm === 'AM' && hours === 12) hours = 0;
+    const [time, ampm] = timeStr.split(" ");
+    let [hours, minutes] = time.split(":").map(Number);
+    if (ampm === "PM" && hours < 12) hours += 12;
+    if (ampm === "AM" && hours === 12) hours = 0;
     return hours * 60 + minutes;
   };
 
@@ -37,7 +38,9 @@ const HomePage = () => {
       try {
         let marketsResponse;
         try {
-          marketsResponse = await axios.get('https://backend-pbn5.onrender.com/api/markets');
+          marketsResponse = await axios.get(
+            "https://backend-pbn5.onrender.com/api/markets"
+          );
         } catch (error) {
           if (error.response && error.response.status === 403) {
             setMarketClosedMessage(error.response.data.message);
@@ -47,18 +50,18 @@ const HomePage = () => {
           }
         }
 
-        const openMarkets = marketsResponse.data.filter(market => market.isBettingOpen);
-        const closedMarkets = marketsResponse.data.filter(market => !market.isBettingOpen);
-        const sortedOpenMarkets = openMarkets.sort((a, b) =>
-          getTimeInMinutes(a.openTime) - getTimeInMinutes(b.openTime)
+        const sortedMarkets = marketsResponse.data.sort(
+          (a, b) => getTimeInMinutes(a.openTime) - getTimeInMinutes(b.openTime)
         );
-        const sortedMarkets = [...sortedOpenMarkets, ...closedMarkets];
+
         setAllMarkets(sortedMarkets);
 
-        const settingsResponse = await axios.get('https://backend-pbn5.onrender.com/api/admin/platform-settings');
+        const settingsResponse = await axios.get(
+          "https://backend-pbn5.onrender.com/api/admin/platform-settings"
+        );
         setBannerImageUrl(settingsResponse.data.bannerImageUrl);
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error("Error fetching data:", error);
         setMarketClosedMessage("Something went wrong. Please try again.");
       } finally {
         setLoading(false);
@@ -70,37 +73,37 @@ const HomePage = () => {
 
   return (
     <div className="font-sans bg-gray-900 text-white p-4 min-h-screen">
-      {/* 🖼️ Banner */}
+      {/* Banner */}
       <div className="my-4 flex justify-center items-center overflow-hidden rounded-lg shadow-lg max-w-3xl mx-auto">
         <img
-          src={bannerImageUrl || "https://via.placeholder.com/1000x400?text=Loading+Image"}
+          src={
+            bannerImageUrl ||
+            "https://via.placeholder.com/1000x400?text=Loading+Image"
+          }
           alt="Casino Banner"
           className="object-cover rounded-lg w-full max-h-48"
         />
       </div>
 
-      {/* 🚨 Marquee */}
       <marquee className="text-sm font-medium bg-gray-800 py-2">
         100% Genuine! Deposits and Withdrawals available 24x7
       </marquee>
 
-      {/* 📞 Action Buttons */}
       <div className="flex justify-center items-center gap-4 mb-4">
         <button
-          className="text-sm font-medium py-2 px-4 bg-gradient-to-r from-red-700 to-red-900 text-white rounded-lg shadow-md hover:from-red-800 hover:to-red-900"
+          className="text-sm font-medium py-2 px-4 bg-red-700 text-white rounded-lg shadow-md"
           onClick={() => navigate("/contact")}
         >
           📞 Contact Us
         </button>
         <button
-          className="text-sm font-medium py-2 px-4 bg-gradient-to-r from-yellow-500 to-yellow-700 text-white rounded-lg shadow-md hover:from-yellow-600 hover:to-yellow-800"
-          onClick={() => navigate('/add-funds')}
+          className="text-sm font-medium py-2 px-4 bg-yellow-600 text-white rounded-lg shadow-md"
+          onClick={() => navigate("/add-funds")}
         >
           + Add Points
         </button>
       </div>
 
-      {/* 🏁 Market Section */}
       <h2 className="text-xl font-bold text-center mb-4">All Markets</h2>
 
       {marketClosedMessage && (
@@ -109,61 +112,71 @@ const HomePage = () => {
         </div>
       )}
 
-      {/* 🔄 Market Listing */}
       {loading ? (
         <div className="flex justify-center items-center min-h-[150px]">
           <div className="loader w-12 h-12 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
         </div>
-      ) : !marketClosedMessage ? (
+      ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {allMarkets.length === 0 ? (
             <p className="text-center text-gray-400">No markets available.</p>
           ) : (
             allMarkets.map((market) => {
-              const openMinutes = getTimeInMinutes(market.openTime);
-              const closeMinutes = getTimeInMinutes(market.closeTime);
-              const openCutoff = openMinutes - 10;
-              const closeCutoff = closeMinutes - 10;
+              const open = getTimeInMinutes(market.openTime);
+              const close = getTimeInMinutes(market.closeTime);
+              const openCutoff = open - 10;
+              const closeCutoff = close - 10;
 
-              let bettingStatus = 'Closed';
-
+              let bettingStatus = "Closed";
               if (currentMinutes < openCutoff) {
-                bettingStatus = 'Upcoming';
-              } else if (currentMinutes >= openCutoff && currentMinutes < closeCutoff) {
-                bettingStatus = 'Open';
-              } else if (currentMinutes >= closeCutoff && currentMinutes <= closeMinutes) {
-                bettingStatus = 'Closing Soon';
+                bettingStatus = "Full";
+              } else if (
+                currentMinutes >= openCutoff &&
+                currentMinutes < closeCutoff
+              ) {
+                bettingStatus = "CloseOnly";
               }
 
-              const isBettingAllowed = bettingStatus === 'Open';
+              const statusText =
+                bettingStatus === "Full"
+                  ? "Market Open"
+                  : bettingStatus === "CloseOnly"
+                  ? "Close Market Only"
+                  : "Closed";
+
+              const badgeColor =
+                bettingStatus === "Full"
+                  ? "bg-green-500"
+                  : bettingStatus === "CloseOnly"
+                  ? "bg-yellow-500"
+                  : "bg-red-500";
 
               return (
                 <div
                   key={market._id}
                   className="relative p-3 bg-gray-800 rounded-lg shadow-md transition-all duration-300 ease-in-out hover:scale-105 cursor-pointer"
-                  onClick={() => isBettingAllowed && navigate(`/play/${market.name}`)}
+                  onClick={() =>
+                    bettingStatus !== "Closed" &&
+                    navigate(`/play/${market.name}`)
+                  }
                 >
                   <div className="flex justify-between items-center mb-1">
                     <h3 className="text-sm font-semibold">{market.name}</h3>
                     <span
-                      className={`text-xs font-semibold px-2 py-1 rounded-full ${
-                        bettingStatus === 'Open'
-                          ? 'bg-green-500'
-                          : bettingStatus === 'Closing Soon'
-                          ? 'bg-yellow-500'
-                          : 'bg-red-500'
-                      }`}
+                      className={`text-xs font-semibold px-2 py-1 rounded-full ${badgeColor}`}
                     >
-                      {bettingStatus === 'Open' ? 'Market Open' : bettingStatus === 'Closing Soon' ? 'Closing Soon' : 'Closed'}
+                      {statusText}
                     </span>
                   </div>
                   <div className="text-gray-300">
-                    <p className="text-xs">Open: {market.openTime} | Close: {market.closeTime}</p>
+                    <p className="text-xs">
+                      Open: {market.openTime} | Close: {market.closeTime}
+                    </p>
                     <p className="text-sm mt-1 text-yellow-500 font-bold">
                       {formatMarketResult(market.results)}
                     </p>
                   </div>
-                  {isBettingAllowed && (
+                  {bettingStatus !== "Closed" && (
                     <button
                       className="absolute bottom-3 right-3 bg-purple-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm hover:bg-purple-700 transition-colors duration-300 ease-in-out"
                       onClick={(e) => {
@@ -179,9 +192,9 @@ const HomePage = () => {
             })
           )}
         </div>
-      ) : null}
+      )}
 
-      {/* ✅ WhatsApp Button */}
+      {/* WhatsApp Button */}
       <a
         href="https://wa.me/917051098359"
         target="_blank"
