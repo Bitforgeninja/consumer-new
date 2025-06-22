@@ -2,10 +2,27 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 
+// Time utilities
+const getTimeInMinutes = (timeStr) => {
+  if (!timeStr) return 0;
+  const [time, ampm] = timeStr.trim().split(" ");
+  let [hours, minutes] = time.split(":").map(Number);
+  if (ampm === "PM" && hours < 12) hours += 12;
+  if (ampm === "AM" && hours === 12) hours = 0;
+  return hours * 60 + minutes;
+};
+
+const isOpenBettingAllowed = (openTime) => {
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  const open = getTimeInMinutes(openTime);
+  return currentMinutes < open - 10;
+};
+
 const DoublePana = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const marketName = location.state?.marketName || "Milan Day"; // Default to "Milan Day" if not provided
+  const marketName = location.state?.marketName || "Milan Day";
   const gameName = "Double Pana";
 
   const [input, setInput] = useState("");
@@ -23,23 +40,19 @@ const DoublePana = () => {
     fetchBetsAndBalance();
   }, []);
 
-  // Fetch markets data from API
   const fetchMarkets = async () => {
     try {
       const response = await axios.get(
         "https://backend-pbn5.onrender.com/api/markets"
       );
-      
+
       setMarkets(response.data);
-      
-      // Find the current market by name
+
       const market = response.data.find(
         (m) => m.name.toLowerCase() === marketName.toLowerCase()
       );
-      
-      if (market) {
-        setCurrentMarket(market);
-      }
+
+      if (market) setCurrentMarket(market);
     } catch (error) {
       console.error("Error fetching markets:", error);
       setError("Failed to fetch markets!");
@@ -47,7 +60,7 @@ const DoublePana = () => {
   };
 
   const fetchBetsAndBalance = async () => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
       setError("You need to log in to access this information.");
       return;
@@ -55,41 +68,43 @@ const DoublePana = () => {
 
     try {
       const [walletResponse, betsResponse] = await Promise.all([
-        axios.get('https://backend-pbn5.onrender.com/api/wallet/balance', {
+        axios.get("https://backend-pbn5.onrender.com/api/wallet/balance", {
           headers: {
             Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
+            "Content-Type": "application/json",
+          },
         }),
-        axios.get('https://backend-pbn5.onrender.com/api/bets/user/', {
+        axios.get("https://backend-pbn5.onrender.com/api/bets/user/", {
           headers: {
             Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        })
+            "Content-Type": "application/json",
+          },
+        }),
       ]);
 
       setCoins(walletResponse.data.walletBalance);
-      setPlacedBets(betsResponse.data.bets.filter(bet => 
-        bet.gameName === gameName && 
-        bet.marketName === marketName && 
-        bet.status === "pending"
-      ));
+      setPlacedBets(
+        betsResponse.data.bets.filter(
+          (bet) =>
+            bet.gameName === gameName &&
+            bet.marketName === marketName &&
+            bet.status === "pending"
+        )
+      );
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error("Error fetching data:", error);
       setError("Failed to fetch data!");
     }
   };
 
-  // Check if inputs should be disabled
   const isInputDisabled = () => {
     if (!currentMarket) return false;
-    return betType === "Open" && currentMarket.openBetting === false;
+    return betType === "Open" && !isOpenBettingAllowed(currentMarket.openTime);
   };
 
   const handleAddBet = () => {
     if (isInputDisabled()) {
-      setError("Open betting is currently closed for this market!");
+      setError(`⚠️ Open betting is currently closed for ${marketName}`);
       return;
     }
 
@@ -114,7 +129,7 @@ const DoublePana = () => {
       points,
       betType,
       isPlaced: false,
-      isWin: false
+      isWin: false,
     };
 
     setBets([...bets, newBet]);
@@ -148,22 +163,22 @@ const DoublePana = () => {
 
     try {
       const responses = await Promise.all(
-        bets.map(bet =>
+        bets.map((bet) =>
           axios.post(
             "https://backend-pbn5.onrender.com/api/bets/place",
             {
-              marketName: marketName,
-              gameName: gameName,
+              marketName,
+              gameName,
               number: bet.input,
               amount: bet.points,
               winningRatio: 9,
-              betType: bet.betType
+              betType: bet.betType,
             },
             {
               headers: {
                 Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json'
-              }
+                "Content-Type": "application/json",
+              },
             }
           )
         )
@@ -172,7 +187,7 @@ const DoublePana = () => {
       const confirmedBets = responses.map((resp, index) => ({
         ...bets[index],
         isPlaced: true,
-        status: resp.data.status || "Pending"
+        status: resp.data.status || "Pending",
       }));
 
       setPlacedBets([...placedBets, ...confirmedBets]);
@@ -214,30 +229,36 @@ const DoublePana = () => {
         </div>
       </header>
 
-      {/* Market status banner */}
-      {currentMarket && betType === "Open" && !currentMarket.openBetting && (
+      {betType === "Open" && currentMarket && !isOpenBettingAllowed(currentMarket.openTime) && (
         <div className="bg-red-500 text-white px-3 py-1 rounded-lg text-center mb-3 text-xs">
           ⚠️ Open betting is currently closed for {marketName}
         </div>
       )}
 
-      {/* Bet Type Buttons */}
       <div className="flex justify-center mb-3">
         <button
           onClick={() => setBetType("Open")}
-          className={`px-4 py-1 rounded-l-lg font-bold text-sm ${betType === "Open" ? "bg-purple-600 text-white" : "bg-gray-800 text-gray-400"} hover:bg-purple-700 transition duration-300`}
+          className={`px-4 py-1 rounded-l-lg font-bold text-sm ${
+            betType === "Open"
+              ? "bg-purple-600 text-white"
+              : "bg-gray-800 text-gray-400"
+          } hover:bg-purple-700 transition duration-300`}
         >
           Open
         </button>
         <button
           onClick={() => setBetType("Close")}
-          className={`px-4 py-1 rounded-r-lg font-bold text-sm ${betType === "Close" ? "bg-purple-600 text-white" : "bg-gray-800 text-gray-400"} hover:bg-purple-700 transition duration-300`}
+          className={`px-4 py-1 rounded-r-lg font-bold text-sm ${
+            betType === "Close"
+              ? "bg-purple-600 text-white"
+              : "bg-gray-800 text-gray-400"
+          } hover:bg-purple-700 transition duration-300`}
         >
           Close
         </button>
       </div>
 
-      {/* Input Fields and Add Bet Button */}
+      {/* Inputs */}
       <div className="grid grid-cols-3 gap-3 mb-3">
         <input
           type="text"
@@ -270,14 +291,13 @@ const DoublePana = () => {
         </button>
       </div>
 
-      {/* Error Message Display */}
       {error && (
         <div className="bg-red-500 text-white px-3 py-1 rounded-lg text-center mb-3 text-xs">
           {error}
         </div>
       )}
 
-      {/* Current Bets Table */}
+      {/* Current Bets */}
       <div className="bg-gray-800 p-3 rounded-lg shadow-md mb-3">
         <h3 className="text-sm font-bold mb-3">Current Bets</h3>
         <table className="w-full table-auto text-xs">
@@ -309,7 +329,7 @@ const DoublePana = () => {
         </table>
       </div>
 
-      {/* Place Bet Button */}
+      {/* Submit */}
       <button
         onClick={handlePlaceBet}
         disabled={bets.length === 0}
@@ -320,7 +340,7 @@ const DoublePana = () => {
         Submit
       </button>
 
-      {/* Placed Bets Table */}
+      {/* Placed Bets */}
       <div className="bg-gray-800 p-3 rounded-lg shadow-md">
         <h3 className="text-sm font-bold mb-3">Placed Bets</h3>
         <table className="w-full table-auto text-xs">
