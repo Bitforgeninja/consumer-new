@@ -20,6 +20,7 @@ import Contact from './pages/Contact';
 import Wallet from './pages/Wallet';
 import Help from './pages/Help';
 import GameRates from './pages/GameRates';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 import MarketChart from './pages/MarketChart';
 import HalfSangam from './pages/HalfSangam';
 import FullSangam from './pages/FullSangam';
@@ -32,12 +33,16 @@ function App() {
     <Router>
       <Routes>
         {/* Public Routes */}
-        <Route path="/" element={
-          <>
-            <Header />
-            <HomePage />
-          </>
-        } />
+        <Route
+          path="/"
+          element={
+            <>
+              {/* Header likely contains the app name, updated to D7 Matka */}
+              <Header />
+              <HomePage />
+            </>
+          }
+        />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
