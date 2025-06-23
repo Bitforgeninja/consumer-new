@@ -10,14 +10,14 @@ const formatDate = (date) => date.toLocaleDateString("en-GB");
 const getDayName = (date) => date.toLocaleDateString("en-US", { weekday: "long" });
 
 const MarketChart = () => {
-  const { marketName } = useParams(); // ← This replaces location.state
+  const { marketName } = useParams(); // ✅ ← Now works directly via URL
   const navigate = useNavigate();
 
   const [marketId, setMarketId] = useState("");
   const [weeklyResults, setWeeklyResults] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Get market ID by name
+  // 🔁 Fetch Market ID by market name
   useEffect(() => {
     if (!marketName) return;
     const fetchMarketId = async () => {
@@ -28,14 +28,13 @@ const MarketChart = () => {
         );
         setMarketId(res.data.marketId);
       } catch (err) {
-        console.error("Error fetching market ID:", err.message);
+        console.error("❌ Error fetching market ID:", err.message);
         setIsLoading(false);
       }
     };
     fetchMarketId();
   }, [marketName]);
 
-  // Fetch results after market ID is ready
   useEffect(() => {
     if (!marketId) return;
 
@@ -51,10 +50,10 @@ const MarketChart = () => {
           }
         );
 
-        const data = res.data;
+        const rawData = res.data;
         const latestByDate = {};
 
-        data.forEach((entry) => {
+        rawData.forEach((entry) => {
           const dateKey = entry.date;
           const isDummy =
             (entry.openNumber === "000" || entry.openNumber === "0") &&
@@ -108,7 +107,7 @@ const MarketChart = () => {
         setWeeklyResults(sortedWeeks);
         setIsLoading(false);
       } catch (err) {
-        console.error("Error fetching results:", err.message);
+        console.error("❌ Error fetching results:", err.message);
         setIsLoading(false);
       }
     };
@@ -172,13 +171,13 @@ const MarketChart = () => {
                           <td key={idx} className="p-2 border border-gray-700">
                             <table className="w-full border-collapse border border-gray-500">
                               <tbody>
-                                {[0, 1, 2].map((rowIndex) => (
-                                  <tr key={rowIndex} className="text-center">
+                                {[0, 1, 2].map((i) => (
+                                  <tr key={i} className="text-center">
                                     <td className="border border-gray-700 p-1">
-                                      {dayData.left[rowIndex]}
+                                      {dayData.left[i]}
                                     </td>
                                     <td className="border border-gray-700 p-1">
-                                      {rowIndex === 1 ? (
+                                      {i === 1 ? (
                                         <strong className="text-2xl text-red-500">
                                           {dayData.center}
                                         </strong>
@@ -187,7 +186,7 @@ const MarketChart = () => {
                                       )}
                                     </td>
                                     <td className="border border-gray-700 p-1">
-                                      {dayData.right[rowIndex]}
+                                      {dayData.right[i]}
                                     </td>
                                   </tr>
                                 ))}
