@@ -44,13 +44,11 @@ function App() {
         <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
 
-        {/* Chart Route (✅ updated) */}
-        <Route path="/chart/:marketName" element={<MarketChart />} />
-
         {/* Private Routes */}
         <Route element={<PrivateRoute />}>
           <Route path="/add-funds" element={<AddFunds />} />
           <Route path="/play/:marketName" element={<MarketPlay />} />
+          <Route path="/market-chart" element={<MarketChart />} />
           <Route path="/bets-history" element={<BetsHistory />} />
           <Route path="/single-digit" element={<SingleDigit />} />
           <Route path="/jodi-digit" element={<JodiDigit />} />
