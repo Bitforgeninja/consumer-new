@@ -1,54 +1,44 @@
 import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft, faSpinner } from "@fortawesome/free-solid-svg-icons";
 
-// 🛠 Utility: Convert "YYYY-MM-DD" to Date object
-const parseDate = (str) => {
-  return new Date(str + "T00:00:00");
-};
-
-// 🛠 Format date as "DD-MM-YYYY"
-const formatDate = (date) => {
-  return date.toLocaleDateString("en-GB");
-};
-
-// 🛠 Get weekday name from Date object
-const getDayName = (date) => {
-  return date.toLocaleDateString("en-US", { weekday: "long" });
-};
+// Utility: Convert "YYYY-MM-DD" to Date
+const parseDate = (str) => new Date(str + "T00:00:00");
+const formatDate = (date) => date.toLocaleDateString("en-GB");
+const getDayName = (date) => date.toLocaleDateString("en-US", { weekday: "long" });
 
 const MarketChart = () => {
-  const location = useLocation();
+  const { marketName } = useParams(); // ← This replaces location.state
   const navigate = useNavigate();
 
-  const marketName = location.state?.marketName || "";
   const [marketId, setMarketId] = useState("");
   const [weeklyResults, setWeeklyResults] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch Market ID by Name
+  // Get market ID by name
   useEffect(() => {
     if (!marketName) return;
     const fetchMarketId = async () => {
       setIsLoading(true);
       try {
         const res = await axios.get(
-          `https://backend-pbn5.onrender.com/api/markets/get-market-id/${marketName}`
+          `https://backend-pbn5.onrender.com/api/markets/get-market-id/${decodeURIComponent(marketName)}`
         );
         setMarketId(res.data.marketId);
-      } catch (error) {
-        console.error("❌ Error fetching Market ID:", error.message);
+      } catch (err) {
+        console.error("Error fetching market ID:", err.message);
         setIsLoading(false);
       }
     };
     fetchMarketId();
   }, [marketName]);
 
-  // Fetch & Transform Market Results
+  // Fetch results after market ID is ready
   useEffect(() => {
     if (!marketId) return;
+
     const fetchResults = async () => {
       try {
         const token = localStorage.getItem("token");
@@ -61,11 +51,10 @@ const MarketChart = () => {
           }
         );
 
-        const rawData = res.data;
-
-        // 🧹 Deduplicate by date with valid entry preferred
+        const data = res.data;
         const latestByDate = {};
-        rawData.forEach((entry) => {
+
+        data.forEach((entry) => {
           const dateKey = entry.date;
           const isDummy =
             (entry.openNumber === "000" || entry.openNumber === "0") &&
@@ -75,20 +64,16 @@ const MarketChart = () => {
             latestByDate[dateKey] = entry;
           } else {
             const existing = latestByDate[dateKey];
-            const existingIsDummy =
+            const existingDummy =
               (existing.openNumber === "000" || existing.openNumber === "0") &&
               (existing.closeNumber === "000" || existing.closeNumber === "0");
-
-            // Keep the valid one if it exists
-            if (existingIsDummy && !isDummy) {
+            if (existingDummy && !isDummy) {
               latestByDate[dateKey] = entry;
             }
           }
         });
 
-        // 🗓️ Organize into weekly results
         const weeklyData = {};
-
         Object.values(latestByDate).forEach((entry) => {
           const date = parseDate(entry.date);
           if (isNaN(date)) return;
@@ -122,8 +107,8 @@ const MarketChart = () => {
 
         setWeeklyResults(sortedWeeks);
         setIsLoading(false);
-      } catch (error) {
-        console.error("❌ Error fetching market results:", error.message);
+      } catch (err) {
+        console.error("Error fetching results:", err.message);
         setIsLoading(false);
       }
     };
@@ -131,15 +116,10 @@ const MarketChart = () => {
     fetchResults();
   }, [marketId, navigate]);
 
-  // Loader Component
   const Loader = () => (
-    <div className="flex flex-col items-center justify-center py-12">
-      <FontAwesomeIcon 
-        icon={faSpinner} 
-        spin 
-        className="text-yellow-500 text-5xl mb-4" 
-      />
-      <p className="text-xl text-yellow-400">Loading market data...</p>
+    <div className="flex flex-col items-center py-12">
+      <FontAwesomeIcon icon={faSpinner} spin className="text-yellow-500 text-5xl mb-4" />
+      <p className="text-xl text-yellow-400">Loading chart...</p>
     </div>
   );
 
@@ -154,7 +134,7 @@ const MarketChart = () => {
       </button>
 
       <h2 className="text-2xl font-bold text-center mb-4">
-        Matka Market Panel Record
+        {decodeURIComponent(marketName)} Panel Record
       </h2>
 
       {isLoading ? (
