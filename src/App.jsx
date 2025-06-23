@@ -11,7 +11,7 @@ import TriplePana from './pages/TriplePana';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import PrivateRoute from './components/PrivateRoute';
-import Header from './components/Header'; // Changed to show D7 Matka in Header
+import Header from './components/Header';
 import BetsHistory from './pages/BetsHistory';
 import WinHistory from './pages/WinHistory';
 import CoinSettlements from './pages/CoinSettlements';
@@ -20,7 +20,6 @@ import Contact from './pages/Contact';
 import Wallet from './pages/Wallet';
 import Help from './pages/Help';
 import GameRates from './pages/GameRates';
-import PrivacyPolicy from './pages/PrivacyPolicy';
 import MarketChart from './pages/MarketChart';
 import HalfSangam from './pages/HalfSangam';
 import FullSangam from './pages/FullSangam';
@@ -35,22 +34,23 @@ function App() {
         {/* Public Routes */}
         <Route path="/" element={
           <>
-          {/* Header likely contains the app name, updated to D7 Matka */}
-          <Header />
-          <HomePage />
+            <Header />
+            <HomePage />
           </>
-      } />
-      <Route path="/privacy-policy" element={<PrivacyPolicy />}/>
+        } />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/reset-password/:token" element={<ResetPasswordPage />}/>
+        <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+
+        {/* Chart Route (✅ updated) */}
+        <Route path="/chart/:marketName" element={<MarketChart />} />
 
         {/* Private Routes */}
         <Route element={<PrivateRoute />}>
           <Route path="/add-funds" element={<AddFunds />} />
           <Route path="/play/:marketName" element={<MarketPlay />} />
-          <Route path="/market-chart" element={<MarketChart />} />
           <Route path="/bets-history" element={<BetsHistory />} />
           <Route path="/single-digit" element={<SingleDigit />} />
           <Route path="/jodi-digit" element={<JodiDigit />} />
@@ -58,12 +58,12 @@ function App() {
           <Route path="/double-pana" element={<DoublePana />} />
           <Route path="/triple-pana" element={<TriplePana />} />
           <Route path="/win-history" element={<WinHistory />} />
-          <Route path="/coin-settlements" element={<CoinSettlements/>} />
+          <Route path="/coin-settlements" element={<CoinSettlements />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/wallet" element={<Wallet />} />
-          <Route path="/help" element={<Help />}/>
-          <Route path="/game-rates" element={<GameRates />}/>
+          <Route path="/help" element={<Help />} />
+          <Route path="/game-rates" element={<GameRates />} />
           <Route path="/half-sangam" element={<HalfSangam />} />
           <Route path="/full-sangam" element={<FullSangam />} />
           <Route path="/plays" element={<Plays />} />
