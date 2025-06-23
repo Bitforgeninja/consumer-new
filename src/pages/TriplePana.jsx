@@ -2,10 +2,27 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 
+// ⏰ Time-Based Open Betting Cutoff Logic
+const getTimeInMinutes = (timeStr) => {
+  if (!timeStr) return 0;
+  const [time, ampm] = timeStr.trim().split(" ");
+  let [hours, minutes] = time.split(":").map(Number);
+  if (ampm === "PM" && hours < 12) hours += 12;
+  if (ampm === "AM" && hours === 12) hours = 0;
+  return hours * 60 + minutes;
+};
+
+const isOpenBettingAllowed = (openTime) => {
+  const now = new Date();
+  const current = now.getHours() * 60 + now.getMinutes();
+  const open = getTimeInMinutes(openTime);
+  return current < open - 10;
+};
+
 const TriplePana = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const marketName = location.state?.marketName || "Milan Day"; // Default to "Milan Day" if not provided
+  const marketName = location.state?.marketName || "Milan Day";
   const gameName = "Triple Pana";
 
   const [input, setInput] = useState("");
@@ -23,20 +40,13 @@ const TriplePana = () => {
     fetchWalletBalanceAndBets();
   }, []);
 
-  // Fetch markets data from API
   const fetchMarkets = async () => {
     try {
-      const response = await axios.get(
-        "https://backend-pbn5.onrender.com/api/markets"
-      );
-      
+      const response = await axios.get("https://backend-pbn5.onrender.com/api/markets");
       setMarkets(response.data);
-      
-      // Find the current market by name
       const market = response.data.find(
         (m) => m.name.toLowerCase() === marketName.toLowerCase()
       );
-      
       if (market) {
         setCurrentMarket(market);
       }
@@ -70,9 +80,9 @@ const TriplePana = () => {
       ]);
 
       setCoins(walletResponse.data.walletBalance);
-      setPlacedBets(betsResponse.data.bets.filter(bet => 
-        bet.gameName === gameName && 
-        bet.marketName === marketName && 
+      setPlacedBets(betsResponse.data.bets.filter(bet =>
+        bet.gameName === gameName &&
+        bet.marketName === marketName &&
         bet.status === "pending"
       ));
     } catch (error) {
@@ -81,15 +91,14 @@ const TriplePana = () => {
     }
   };
 
-  // Check if inputs should be disabled
   const isInputDisabled = () => {
     if (!currentMarket) return false;
-    return betType === "Open" && currentMarket.openBetting === false;
+    return betType === "Open" && !isOpenBettingAllowed(currentMarket.openTime);
   };
 
   const handleAddBet = () => {
-    if (isInputDisabled()) {
-      setError("Open betting is currently closed for this market!");
+    if (betType === "Open" && currentMarket && !isOpenBettingAllowed(currentMarket.openTime)) {
+      setError(`⚠️ Open betting is currently closed for ${marketName}`);
       return;
     }
 
@@ -114,7 +123,7 @@ const TriplePana = () => {
       points,
       betType,
       isPlaced: false,
-      isWin: false
+      isWin: false,
     };
 
     setBets([...bets, newBet]);
@@ -200,8 +209,8 @@ const TriplePana = () => {
         </div>
       </header>
 
-      {/* Market status banner */}
-      {currentMarket && betType === "Open" && !currentMarket.openBetting && (
+      {/* 🟥 Dynamic open betting banner */}
+      {currentMarket && betType === "Open" && !isOpenBettingAllowed(currentMarket.openTime) && (
         <div className="bg-red-600 text-white px-3 py-2 rounded-md text-center text-sm mb-4">
           ⚠️ Open betting is currently closed for {marketName}
         </div>
@@ -223,7 +232,7 @@ const TriplePana = () => {
           value={input} 
           onChange={(e) => setInput(e.target.value)}
           disabled={isInputDisabled()}
-          className={`col-span-1 px-3 py-2 bg-white text-black rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-600 ${
+          className={`col-span-1 px-3 py-2 bg-white text-black rounded-md text-sm focus:outline-none ${
             isInputDisabled() ? "opacity-50 cursor-not-allowed" : ""
           }`} 
         />
@@ -233,14 +242,14 @@ const TriplePana = () => {
           value={points} 
           onChange={(e) => setPoints(e.target.value)}
           disabled={isInputDisabled()}
-          className={`col-span-1 px-3 py-2 bg-white text-black rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-600 ${
+          className={`col-span-1 px-3 py-2 bg-white text-black rounded-md text-sm focus:outline-none ${
             isInputDisabled() ? "opacity-50 cursor-not-allowed" : ""
           }`} 
         />
         <button 
           onClick={handleAddBet}
           disabled={isInputDisabled()}
-          className={`col-span-1 bg-purple-600 hover:bg-purple-700 px-3 py-2 rounded-md font-bold text-sm transition duration-300 ${
+          className={`col-span-1 bg-purple-600 hover:bg-purple-700 px-3 py-2 rounded-md font-bold text-sm transition ${
             isInputDisabled() ? "opacity-50 cursor-not-allowed" : ""
           }`}
         >
@@ -254,6 +263,7 @@ const TriplePana = () => {
         </div>
       )}
 
+      {/* Current Bets */}
       <div className="bg-gray-800 p-4 rounded-md shadow-md mb-4">
         <h3 className="text-base font-bold mb-3">Current Bets</h3>
         <table className="w-full table-auto text-sm">
@@ -272,7 +282,7 @@ const TriplePana = () => {
                 <td className="px-3 py-2">{bet.points}</td>
                 <td className="px-3 py-2">{bet.betType}</td>
                 <td className="px-3 py-2 text-right">
-                  <button onClick={() => handleDeleteBet(index)} className="bg-red-600 hover:bg-red-700 px-2 py-1 rounded-md text-white font-bold text-xs transition duration-300">
+                  <button onClick={() => handleDeleteBet(index)} className="bg-red-600 hover:bg-red-700 px-2 py-1 rounded-md text-white font-bold text-xs">
                     Delete
                   </button>
                 </td>
@@ -282,16 +292,18 @@ const TriplePana = () => {
         </table>
       </div>
 
+      {/* Submit Button */}
       <button 
         onClick={handlePlaceBet}
         disabled={bets.length === 0}
-        className={`w-full bg-green-600 hover:bg-green-700 py-2 rounded-md font-bold text-sm transition duration-300 mb-4 ${
+        className={`w-full bg-green-600 hover:bg-green-700 py-2 rounded-md font-bold text-sm transition mb-4 ${
           bets.length === 0 ? "opacity-50 cursor-not-allowed" : ""
         }`}
       >
         Submit
       </button>
 
+      {/* Submitted Bets Table */}
       <div className="bg-gray-800 p-4 rounded-md shadow-md">
         <h3 className="text-base font-bold mb-3">Placed Bets</h3>
         <table className="w-full table-auto text-sm">
@@ -304,17 +316,15 @@ const TriplePana = () => {
             </tr>
           </thead>
           <tbody>
-            {placedBets.map((bet) => (
-              <tr key={bet._id || bet.betId} className="border-b border-gray-700">
+            {placedBets.map((bet, index) => (
+              <tr key={bet._id || bet.betId || index} className="border-b border-gray-700">
                 <td className="px-3 py-2">{bet.number}</td>
                 <td className="px-3 py-2">{bet.amount}</td>
                 <td className="px-3 py-2">{bet.betType}</td>
                 <td className="px-3 py-2">
-                  {bet.status === "win" ? (
-                    <span className="text-green-500 font-bold">Win</span>
-                  ) : (
-                    <span className="text-yellow-500 font-bold">Pending</span>
-                  )}
+                  <span className={`font-bold ${bet.status === "win" ? "text-green-500" : "text-yellow-500"}`}>
+                    {bet.status ? bet.status.charAt(0).toUpperCase() + bet.status.slice(1) : "Pending"}
+                  </span>
                 </td>
               </tr>
             ))}
