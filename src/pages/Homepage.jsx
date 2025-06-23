@@ -27,7 +27,6 @@ const HomePage = () => {
     return `${open}-${jodi}-${close}`;
   };
 
-  // Converts AM/PM time to minutes
   const getTimeInMinutes = (timeStr) => {
     if (!timeStr) return 0;
     const [time, ampm] = timeStr.split(" ");
@@ -54,8 +53,8 @@ const HomePage = () => {
           }
         }
 
-        const sortedMarkets = marketsResponse.data.sort(
-          (a, b) => getTimeInMinutes(a.openTime) - getTimeInMinutes(b.openTime)
+        const sortedMarkets = marketsResponse.data.sort((a, b) =>
+          getTimeInMinutes(a.openTime) - getTimeInMinutes(b.openTime)
         );
 
         setAllMarkets(sortedMarkets);
@@ -75,7 +74,6 @@ const HomePage = () => {
     fetchData();
   }, []);
 
-  // Show only message from 12 AM to 6 AM
   if (currentHours >= 0 && currentHours < 6) {
     return (
       <div className="font-sans bg-gray-900 text-white p-4 min-h-screen">
@@ -159,16 +157,13 @@ const HomePage = () => {
 
               let bettingStatus = "Closed";
 
-              // ✅ FIXED LOGIC
               if (currentMinutesInDay < openCutoff) {
-                bettingStatus = "Full"; // Full betting allowed
+                bettingStatus = "Full";
               } else if (
                 currentMinutesInDay >= openCutoff &&
                 currentMinutesInDay < closeCutoff
               ) {
-                bettingStatus = "CloseOnly"; // Open betting closed, Close only
-              } else {
-                bettingStatus = "Closed"; // Both closed
+                bettingStatus = "CloseOnly";
               }
 
               const statusText =
@@ -188,20 +183,33 @@ const HomePage = () => {
               return (
                 <div
                   key={market._id}
-                  className="relative p-3 bg-gray-800 rounded-lg shadow-md transition-all duration-300 ease-in-out hover:scale-105 cursor-pointer"
+                  className="relative p-3 bg-gray-800 rounded-lg shadow-md transition-all duration-300 hover:scale-105 cursor-pointer"
                   onClick={() =>
                     bettingStatus !== "Closed" &&
                     navigate(`/play/${market.name}`)
                   }
                 >
+                  {/* Title + Chart Button */}
                   <div className="flex justify-between items-center mb-1">
                     <h3 className="text-sm font-semibold">{market.name}</h3>
-                    <span
-                      className={`text-xs font-semibold px-2 py-1 rounded-full ${badgeColor}`}
-                    >
-                      {statusText}
-                    </span>
+                    <div className="flex gap-1">
+                      <span
+                        className={`text-xs font-semibold px-2 py-1 rounded-full ${badgeColor}`}
+                      >
+                        {statusText}
+                      </span>
+                      <button
+                        className="bg-green-600 text-white px-2 py-1 text-xs rounded-md font-semibold hover:bg-green-700"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/chart/${encodeURIComponent(market.name)}`);
+                        }}
+                      >
+                        📊 Chart
+                      </button>
+                    </div>
                   </div>
+
                   <div className="text-gray-300">
                     <p className="text-xs">
                       Open: {market.openTime} | Close: {market.closeTime}
@@ -210,9 +218,10 @@ const HomePage = () => {
                       {formatMarketResult(market.results)}
                     </p>
                   </div>
+
                   {bettingStatus !== "Closed" && (
                     <button
-                      className="absolute bottom-3 right-3 bg-purple-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm hover:bg-purple-700 transition-colors duration-300 ease-in-out"
+                      className="absolute bottom-3 right-3 bg-purple-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm hover:bg-purple-700"
                       onClick={(e) => {
                         e.stopPropagation();
                         navigate(`/play/${market.name}`);
@@ -234,10 +243,7 @@ const HomePage = () => {
         target="_blank"
         rel="noopener noreferrer"
         className="fixed bottom-6 right-6 bg-green-600 p-4 rounded-full text-white shadow-lg hover:bg-green-700 transition-transform duration-300 transform hover:scale-110 flex items-center justify-center"
-        style={{
-          zIndex: 1000,
-          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
-        }}
+        style={{ zIndex: 1000 }}
       >
         <FontAwesomeIcon icon={faWhatsapp} size="lg" />
       </a>
