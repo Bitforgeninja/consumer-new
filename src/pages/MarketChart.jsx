@@ -1,30 +1,51 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft, faSpinner } from "@fortawesome/free-solid-svg-icons";
 
-// Utility: Convert "YYYY-MM-DD" to Date
+// Utility functions
 const parseDate = (str) => new Date(str + "T00:00:00");
 const formatDate = (date) => date.toLocaleDateString("en-GB");
-const getDayName = (date) => date.toLocaleDateString("en-US", { weekday: "long" });
+const getDayName = (date) =>
+  date.toLocaleDateString("en-US", { weekday: "long" });
 
 const MarketChart = () => {
-  const { marketName } = useParams(); // ✅ ← Now works directly via URL
   const navigate = useNavigate();
+  const location = useLocation();
+  const marketName = location.state?.marketName;
 
   const [marketId, setMarketId] = useState("");
   const [weeklyResults, setWeeklyResults] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // 🔁 Fetch Market ID by market name
+  // If marketName is missing (user reloaded the page)
+  if (!marketName) {
+    return (
+      <div className="p-4 bg-gray-900 text-white min-h-screen text-center">
+        <h2 className="text-2xl font-bold mb-4 text-red-500">🚫 Market Not Found</h2>
+        <p className="text-yellow-400 mb-6">
+          Market name is missing. Return to Home and try again.
+        </p>
+        <button
+          onClick={() => navigate("/")}
+          className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-2 px-4 rounded"
+        >
+          ⬅ Back to Home
+        </button>
+      </div>
+    );
+  }
+
+  // Fetch market ID from backend
   useEffect(() => {
-    if (!marketName) return;
     const fetchMarketId = async () => {
       setIsLoading(true);
       try {
         const res = await axios.get(
-          `https://backend-pbn5.onrender.com/api/markets/get-market-id/${decodeURIComponent(marketName)}`
+          `https://backend-pbn5.onrender.com/api/markets/get-market-id/${encodeURIComponent(
+            marketName
+          )}`
         );
         setMarketId(res.data.marketId);
       } catch (err) {
@@ -78,11 +99,15 @@ const MarketChart = () => {
           if (isNaN(date)) return;
 
           const startOfWeek = new Date(date);
-          startOfWeek.setDate(date.getDate() - (date.getDay() === 0 ? 6 : date.getDay() - 1));
+          startOfWeek.setDate(
+            date.getDate() - (date.getDay() === 0 ? 6 : date.getDay() - 1)
+          );
           const endOfWeek = new Date(startOfWeek);
           endOfWeek.setDate(startOfWeek.getDate() + 6);
 
-          const weekKey = `${formatDate(startOfWeek)} to ${formatDate(endOfWeek)}`;
+          const weekKey = `${formatDate(startOfWeek)} to ${formatDate(
+            endOfWeek
+          )}`;
           const dayName = getDayName(date);
 
           if (!weeklyData[weekKey]) {
@@ -117,7 +142,11 @@ const MarketChart = () => {
 
   const Loader = () => (
     <div className="flex flex-col items-center py-12">
-      <FontAwesomeIcon icon={faSpinner} spin className="text-yellow-500 text-5xl mb-4" />
+      <FontAwesomeIcon
+        icon={faSpinner}
+        spin
+        className="text-yellow-500 text-5xl mb-4"
+      />
       <p className="text-xl text-yellow-400">Loading chart...</p>
     </div>
   );
@@ -133,7 +162,7 @@ const MarketChart = () => {
       </button>
 
       <h2 className="text-2xl font-bold text-center mb-4">
-        {decodeURIComponent(marketName)} Panel Record
+        {marketName} Panel Record
       </h2>
 
       {isLoading ? (
@@ -144,13 +173,19 @@ const MarketChart = () => {
             <thead>
               <tr className="bg-yellow-500 text-black">
                 <th className="p-2 border border-gray-700">Date Range</th>
-                {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map(
-                  (day) => (
-                    <th key={day} className="p-2 border border-gray-700">
-                      {day}
-                    </th>
-                  )
-                )}
+                {[
+                  "Monday",
+                  "Tuesday",
+                  "Wednesday",
+                  "Thursday",
+                  "Friday",
+                  "Saturday",
+                  "Sunday",
+                ].map((day) => (
+                  <th key={day} className="p-2 border border-gray-700">
+                    {day}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
@@ -160,42 +195,48 @@ const MarketChart = () => {
                     <td className="p-2 border border-gray-700 font-semibold text-yellow-400">
                       {week.dateRange}
                     </td>
-                    {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map(
-                      (day, idx) => {
-                        const dayData = week.results[day] || {
-                          left: ["-", "-", "-"],
-                          center: "-",
-                          right: ["-", "-", "-"],
-                        };
-                        return (
-                          <td key={idx} className="p-2 border border-gray-700">
-                            <table className="w-full border-collapse border border-gray-500">
-                              <tbody>
-                                {[0, 1, 2].map((i) => (
-                                  <tr key={i} className="text-center">
-                                    <td className="border border-gray-700 p-1">
-                                      {dayData.left[i]}
-                                    </td>
-                                    <td className="border border-gray-700 p-1">
-                                      {i === 1 ? (
-                                        <strong className="text-2xl text-red-500">
-                                          {dayData.center}
-                                        </strong>
-                                      ) : (
-                                        ""
-                                      )}
-                                    </td>
-                                    <td className="border border-gray-700 p-1">
-                                      {dayData.right[i]}
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </td>
-                        );
-                      }
-                    )}
+                    {[
+                      "Monday",
+                      "Tuesday",
+                      "Wednesday",
+                      "Thursday",
+                      "Friday",
+                      "Saturday",
+                      "Sunday",
+                    ].map((day, idx) => {
+                      const dayData = week.results[day] || {
+                        left: ["-", "-", "-"],
+                        center: "-",
+                        right: ["-", "-", "-"],
+                      };
+                      return (
+                        <td key={idx} className="p-2 border border-gray-700">
+                          <table className="w-full border-collapse border border-gray-500">
+                            <tbody>
+                              {[0, 1, 2].map((i) => (
+                                <tr key={i} className="text-center">
+                                  <td className="border border-gray-700 p-1">
+                                    {dayData.left[i]}
+                                  </td>
+                                  <td className="border border-gray-700 p-1">
+                                    {i === 1 ? (
+                                      <strong className="text-2xl text-red-500">
+                                        {dayData.center}
+                                      </strong>
+                                    ) : (
+                                      ""
+                                    )}
+                                  </td>
+                                  <td className="border border-gray-700 p-1">
+                                    {dayData.right[i]}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </td>
+                      );
+                    })}
                   </tr>
                 ))
               ) : (
