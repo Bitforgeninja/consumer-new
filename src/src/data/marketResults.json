@@ -19,5 +19,12 @@
     "openNumber": "123",
     "jodiResult": "34",
     "closeNumber": "456"
+  },
+  {
+    "date": "2025-06-25",
+    "marketName": "MAIN BAZAR",
+    "openNumber": "145",
+    "jodiResult": "38",
+    "closeNumber": "578"
   }
 ]
