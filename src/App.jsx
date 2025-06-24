@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import HomePage from './pages/Homepage';
 import AddFunds from './pages/AddFunds';
 import MarketPlay from './pages/MarketPlay';
@@ -24,31 +24,32 @@ import MarketChart from './pages/MarketChart';
 import HalfSangam from './pages/HalfSangam';
 import FullSangam from './pages/FullSangam';
 import ResetPasswordPage from './pages/ResetPassword';
-import ForgotPassword from "./pages/ForgotPassword";
+import ForgotPassword from './pages/ForgotPassword';
 import Plays from './pages/Plays';
 
-// ✅ Create inline PrivateRoute here if you don’t want separate file
-const PrivateRoute = ({ children }) => {
+// ✅ Updated PrivateRoute with <Outlet /> for nested route support
+const PrivateRoute = () => {
   const token = localStorage.getItem('token');
-  return token ? children : <Navigate to="/login" />;
+  return token ? <Outlet /> : <Navigate to="/login" />;
 };
 
 function App() {
   return (
     <Router>
       <Routes>
-        {/* ✅ Protected Homepage (Show login if not logged in) */}
-        <Route
-          path="/"
-          element={
-            <PrivateRoute>
+
+        {/* ✅ Protected Homepage */}
+        <Route element={<PrivateRoute />}>
+          <Route
+            path="/"
+            element={
               <>
                 <Header />
                 <HomePage />
               </>
-            </PrivateRoute>
-          }
-        />
+            }
+          />
+        </Route>
 
         {/* Public Routes */}
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
@@ -57,7 +58,7 @@ function App() {
         <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
 
-        {/* Private Routes */}
+        {/* ✅ Private Routes - all need token */}
         <Route element={<PrivateRoute />}>
           <Route path="/add-funds" element={<AddFunds />} />
           <Route path="/play/:marketName" element={<MarketPlay />} />
