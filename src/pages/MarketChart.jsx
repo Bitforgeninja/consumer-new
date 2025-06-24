@@ -4,7 +4,7 @@ import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft, faSpinner } from "@fortawesome/free-solid-svg-icons";
 
-// Utility functions
+// Date utilities
 const parseDate = (str) => new Date(str + "T00:00:00");
 const formatDate = (date) => date.toLocaleDateString("en-GB");
 const getDayName = (date) =>
@@ -19,43 +19,40 @@ const MarketChart = () => {
   const [weeklyResults, setWeeklyResults] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // If marketName is missing (user reloaded the page)
+  // If reloaded without state
   if (!marketName) {
     return (
       <div className="p-4 bg-gray-900 text-white min-h-screen text-center">
-        <h2 className="text-2xl font-bold mb-4 text-red-500">🚫 Market Not Found</h2>
-        <p className="text-yellow-400 mb-6">
-          Market name is missing. Return to Home and try again.
-        </p>
+        <h2 className="text-2xl font-bold text-red-500 mb-4">Market Missing</h2>
+        <p className="text-yellow-400">Please return to homepage and click the Chart again.</p>
         <button
           onClick={() => navigate("/")}
-          className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-2 px-4 rounded"
+          className="bg-yellow-400 text-black mt-6 py-2 px-4 rounded hover:bg-yellow-500"
         >
-          ⬅ Back to Home
+          ⬅ Go Back
         </button>
       </div>
     );
   }
 
-  // Fetch market ID from backend
+  // Step 1: Fetch market ID
   useEffect(() => {
-    const fetchMarketId = async () => {
-      setIsLoading(true);
+    const getMarketId = async () => {
       try {
         const res = await axios.get(
-          `https://backend-pbn5.onrender.com/api/markets/get-market-id/${encodeURIComponent(
-            marketName
-          )}`
+          `https://backend-pbn5.onrender.com/api/markets/get-market-id/${encodeURIComponent(marketName)}`
         );
         setMarketId(res.data.marketId);
       } catch (err) {
-        console.error("❌ Error fetching market ID:", err.message);
+        console.error("Error getting market ID:", err.message);
         setIsLoading(false);
       }
     };
-    fetchMarketId();
+
+    getMarketId();
   }, [marketName]);
 
+  // Step 2: Fetch market results by ID
   useEffect(() => {
     if (!marketId) return;
 
@@ -72,8 +69,9 @@ const MarketChart = () => {
         );
 
         const rawData = res.data;
-        const latestByDate = {};
 
+        // Combine results per date, preferring valid (non-dummy) entries
+        const latestByDate = {};
         rawData.forEach((entry) => {
           const dateKey = entry.date;
           const isDummy =
@@ -93,21 +91,18 @@ const MarketChart = () => {
           }
         });
 
+        // Group by week
         const weeklyData = {};
         Object.values(latestByDate).forEach((entry) => {
           const date = parseDate(entry.date);
           if (isNaN(date)) return;
 
           const startOfWeek = new Date(date);
-          startOfWeek.setDate(
-            date.getDate() - (date.getDay() === 0 ? 6 : date.getDay() - 1)
-          );
+          startOfWeek.setDate(date.getDate() - (date.getDay() === 0 ? 6 : date.getDay() - 1));
           const endOfWeek = new Date(startOfWeek);
           endOfWeek.setDate(startOfWeek.getDate() + 6);
 
-          const weekKey = `${formatDate(startOfWeek)} to ${formatDate(
-            endOfWeek
-          )}`;
+          const weekKey = `${formatDate(startOfWeek)} to ${formatDate(endOfWeek)}`;
           const dayName = getDayName(date);
 
           if (!weeklyData[weekKey]) {
@@ -125,6 +120,7 @@ const MarketChart = () => {
           };
         });
 
+        // Sort by latest week first
         const sortedWeeks = Object.values(weeklyData).sort(
           (a, b) => b.weekStart - a.weekStart
         );
@@ -132,7 +128,7 @@ const MarketChart = () => {
         setWeeklyResults(sortedWeeks);
         setIsLoading(false);
       } catch (err) {
-        console.error("❌ Error fetching results:", err.message);
+        console.error("Error fetching results:", err.message);
         setIsLoading(false);
       }
     };
@@ -142,11 +138,7 @@ const MarketChart = () => {
 
   const Loader = () => (
     <div className="flex flex-col items-center py-12">
-      <FontAwesomeIcon
-        icon={faSpinner}
-        spin
-        className="text-yellow-500 text-5xl mb-4"
-      />
+      <FontAwesomeIcon icon={faSpinner} spin className="text-yellow-500 text-5xl mb-4" />
       <p className="text-xl text-yellow-400">Loading chart...</p>
     </div>
   );
@@ -154,15 +146,14 @@ const MarketChart = () => {
   return (
     <div className="p-4 bg-gray-900 text-white min-h-screen">
       <button
-        className="text-white text-lg mb-4 flex items-center space-x-2 hover:scale-110 transition-transform"
         onClick={() => navigate(-1)}
+        className="text-white text-lg mb-4 flex items-center space-x-2 hover:scale-110 transition-transform"
       >
-        <FontAwesomeIcon icon={faArrowLeft} />
-        <span>Back</span>
+        <FontAwesomeIcon icon={faArrowLeft} /> <span>Back</span>
       </button>
 
       <h2 className="text-2xl font-bold text-center mb-4">
-        {marketName} Panel Record
+        📊 {marketName} Panel Record
       </h2>
 
       {isLoading ? (
@@ -172,19 +163,9 @@ const MarketChart = () => {
           <table className="w-full border-collapse border border-gray-700">
             <thead>
               <tr className="bg-yellow-500 text-black">
-                <th className="p-2 border border-gray-700">Date Range</th>
-                {[
-                  "Monday",
-                  "Tuesday",
-                  "Wednesday",
-                  "Thursday",
-                  "Friday",
-                  "Saturday",
-                  "Sunday",
-                ].map((day) => (
-                  <th key={day} className="p-2 border border-gray-700">
-                    {day}
-                  </th>
+                <th className="p-2 border">Date Range</th>
+                {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => (
+                  <th key={day} className="p-2 border">{day}</th>
                 ))}
               </tr>
             </thead>
@@ -192,42 +173,32 @@ const MarketChart = () => {
               {weeklyResults.length > 0 ? (
                 weeklyResults.map((week, index) => (
                   <tr key={index} className="text-center bg-gray-800">
-                    <td className="p-2 border border-gray-700 font-semibold text-yellow-400">
+                    <td className="font-semibold text-yellow-400 p-2 border">
                       {week.dateRange}
                     </td>
-                    {[
-                      "Monday",
-                      "Tuesday",
-                      "Wednesday",
-                      "Thursday",
-                      "Friday",
-                      "Saturday",
-                      "Sunday",
-                    ].map((day, idx) => {
+                    {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day, idx) => {
                       const dayData = week.results[day] || {
                         left: ["-", "-", "-"],
                         center: "-",
                         right: ["-", "-", "-"],
                       };
                       return (
-                        <td key={idx} className="p-2 border border-gray-700">
+                        <td key={idx} className="p-2 border">
                           <table className="w-full border-collapse border border-gray-500">
                             <tbody>
                               {[0, 1, 2].map((i) => (
-                                <tr key={i} className="text-center">
-                                  <td className="border border-gray-700 p-1">
+                                <tr key={i}>
+                                  <td className="border px-1 text-sm">
                                     {dayData.left[i]}
                                   </td>
-                                  <td className="border border-gray-700 p-1">
-                                    {i === 1 ? (
-                                      <strong className="text-2xl text-red-500">
+                                  <td className="border px-1">
+                                    {i === 1 && (
+                                      <strong className="text-red-500 text-xl">
                                         {dayData.center}
                                       </strong>
-                                    ) : (
-                                      ""
                                     )}
                                   </td>
-                                  <td className="border border-gray-700 p-1">
+                                  <td className="border px-1 text-sm">
                                     {dayData.right[i]}
                                   </td>
                                 </tr>
