@@ -1,16 +1,7 @@
-[
-  {
-    "date": "2024-06-20",
-    "marketName": "MAIN BAZAR",
-    "openNumber": "124",
-    "jodiResult": "48",
-    "closeNumber": "445"
-  },
-  {
-    "date": "2024-06-21",
-    "marketName": "MAIN BAZAR",
-    "openNumber": "235",
-    "jodiResult": "56",
-    "closeNumber": "667"
-  }
-]
+{
+  "date": "2024-06-26",
+  "marketName": "sridevi night",
+  "openNumber": "345",
+  "jodiResult": "67",
+  "closeNumber": "123"
+}
