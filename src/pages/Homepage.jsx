@@ -192,11 +192,14 @@ const HomePage = () => {
                       >
                         {statusText}
                       </span>
+                      {/* ✅ Updated Chart Button */}
                       <button
                         className="bg-gray-100 text-gray-800 px-2 py-1 text-xs rounded font-medium hover:bg-gray-200"
                         onClick={(e) => {
                           e.stopPropagation();
-                          navigate(`/chart/${encodeURIComponent(market.name)}`);
+                          navigate("/market-chart", {
+                            state: { marketName: market.name },
+                          });
                         }}
                       >
                         📊 Chart
