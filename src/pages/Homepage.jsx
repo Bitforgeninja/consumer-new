@@ -1,3 +1,4 @@
+// ✅ Copied from your version, only chart button updated to lowercase for consistency
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -192,13 +193,16 @@ const HomePage = () => {
                       >
                         {statusText}
                       </span>
-                      {/* ✅ Updated Chart Button */}
+
+                      {/* 📊 Chart Button */}
                       <button
                         className="bg-gray-100 text-gray-800 px-2 py-1 text-xs rounded font-medium hover:bg-gray-200"
                         onClick={(e) => {
                           e.stopPropagation();
                           navigate("/market-chart", {
-                            state: { marketName: market.name },
+                            state: {
+                              marketName: market.name.trim().toLowerCase()
+                            }
                           });
                         }}
                       >
