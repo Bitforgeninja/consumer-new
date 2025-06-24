@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import HomePage from './pages/Homepage';
 import AddFunds from './pages/AddFunds';
 import MarketPlay from './pages/MarketPlay';
@@ -10,7 +10,6 @@ import DoublePana from './pages/DoublePana';
 import TriplePana from './pages/TriplePana';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import PrivateRoute from './components/PrivateRoute';
 import Header from './components/Header';
 import BetsHistory from './pages/BetsHistory';
 import WinHistory from './pages/WinHistory';
@@ -28,21 +27,30 @@ import ResetPasswordPage from './pages/ResetPassword';
 import ForgotPassword from "./pages/ForgotPassword";
 import Plays from './pages/Plays';
 
+// ✅ Create inline PrivateRoute here if you don’t want separate file
+const PrivateRoute = ({ children }) => {
+  const token = localStorage.getItem('token');
+  return token ? children : <Navigate to="/login" />;
+};
+
 function App() {
   return (
     <Router>
       <Routes>
-        {/* Public Routes */}
+        {/* ✅ Protected Homepage (Show login if not logged in) */}
         <Route
           path="/"
           element={
-            <>
-              {/* Header likely contains the app name, updated to D7 Matka */}
-              <Header />
-              <HomePage />
-            </>
+            <PrivateRoute>
+              <>
+                <Header />
+                <HomePage />
+              </>
+            </PrivateRoute>
           }
         />
+
+        {/* Public Routes */}
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
