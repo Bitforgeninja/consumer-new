@@ -16,7 +16,6 @@ const HomePage = () => {
   const currentHours = now.getHours();
   const currentMinutesInDay = currentHours * 60 + now.getMinutes();
 
-  // Format result or hide after midnight
   const formatMarketResult = (results) => {
     if (currentHours >= 0 && currentHours < 6) return "***-**-***";
     if (!results) return "xxx-xx-xxx";
@@ -53,8 +52,8 @@ const HomePage = () => {
           }
         }
 
-        const sortedMarkets = marketsResponse.data.sort((a, b) =>
-          getTimeInMinutes(a.openTime) - getTimeInMinutes(b.openTime)
+        const sortedMarkets = marketsResponse.data.sort(
+          (a, b) => getTimeInMinutes(a.openTime) - getTimeInMinutes(b.openTime)
         );
 
         setAllMarkets(sortedMarkets);
@@ -76,78 +75,74 @@ const HomePage = () => {
 
   if (currentHours >= 0 && currentHours < 6) {
     return (
-      <div className="font-sans bg-gray-900 text-white p-4 min-h-screen">
-        <div className="my-4 flex justify-center items-center overflow-hidden rounded-lg shadow-lg max-w-3xl mx-auto">
+      <div className="font-sans bg-[#f7f7f7] text-gray-900 p-4 min-h-screen">
+        <div className="my-4 max-w-3xl mx-auto overflow-hidden rounded-lg shadow">
           <img
             src={
               bannerImageUrl ||
               "https://via.placeholder.com/1000x400?text=Loading+Image"
             }
-            alt="Casino Banner"
-            className="object-cover rounded-lg w-full max-h-48"
+            alt="Banner"
+            className="w-full h-48 object-cover rounded-md"
           />
         </div>
 
-        <marquee className="text-sm font-medium bg-gray-800 py-2">
-          100% Genuine! Deposits and Withdrawals available 24x7
-        </marquee>
-
-        <h2 className="text-xl text-center font-bold mt-6 mb-4">
+        <div className="bg-blue-100 text-blue-800 text-base p-2 mb-4 rounded text-center font-medium">
           Markets will be open after 6 AM
-        </h2>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="font-sans bg-gray-900 text-white p-4 min-h-screen">
+    <div className="font-sans bg-[#f7f7f7] text-gray-900 p-4 min-h-screen">
       {/* Banner */}
-      <div className="my-4 flex justify-center items-center overflow-hidden rounded-lg shadow-lg max-w-3xl mx-auto">
+      <div className="my-4 max-w-3xl mx-auto overflow-hidden rounded-lg shadow">
         <img
           src={
             bannerImageUrl ||
             "https://via.placeholder.com/1000x400?text=Loading+Image"
           }
-          alt="Casino Banner"
-          className="object-cover rounded-lg w-full max-h-48"
+          alt="Banner"
+          className="w-full h-48 object-cover rounded-md"
         />
       </div>
 
-      <marquee className="text-sm font-medium bg-gray-800 py-2">
+      <div className="bg-yellow-100 text-yellow-800 text-sm p-2 rounded text-center font-medium mb-4">
         100% Genuine! Deposits and Withdrawals available 24x7
-      </marquee>
+      </div>
 
-      <div className="flex justify-center items-center gap-4 mb-4">
+      <div className="flex justify-center items-center gap-4 mb-6">
         <button
-          className="text-sm font-medium py-2 px-4 bg-red-700 text-white rounded-lg shadow-md"
+          className="text-base font-medium py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700"
           onClick={() => navigate("/contact")}
         >
           📞 Contact Us
         </button>
         <button
-          className="text-sm font-medium py-2 px-4 bg-yellow-600 text-white rounded-lg shadow-md"
+          className="text-base font-medium py-2 px-4 bg-green-600 text-white rounded-md hover:bg-green-700"
           onClick={() => navigate("/add-funds")}
         >
           + Add Points
         </button>
       </div>
 
-      <h2 className="text-xl font-bold text-center mb-4">All Markets</h2>
+      <h2 className="text-2xl font-bold text-center mb-4">All Markets</h2>
 
       {marketClosedMessage && (
-        <div className="text-center text-red-500 font-semibold text-lg mb-4">
+        <div className="text-center text-red-600 font-semibold text-lg mb-4">
           {marketClosedMessage}
         </div>
       )}
 
       {loading ? (
         <div className="flex justify-center items-center min-h-[150px]">
-          <div className="loader w-12 h-12 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="loader w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {allMarkets.length === 0 ? (
-            <p className="text-center text-gray-400">No markets available.</p>
+            <p className="text-center text-gray-500">No markets available.</p>
           ) : (
             allMarkets.map((market) => {
               const openMinutes = getTimeInMinutes(market.openTime);
@@ -156,7 +151,6 @@ const HomePage = () => {
               const closeCutoff = closeMinutes - 10;
 
               let bettingStatus = "Closed";
-
               if (currentMinutesInDay < openCutoff) {
                 bettingStatus = "Full";
               } else if (
@@ -173,33 +167,33 @@ const HomePage = () => {
                   ? "Close Market Only"
                   : "Closed";
 
-              const badgeColor =
+              const badgeClass =
                 bettingStatus === "Full"
-                  ? "bg-green-500"
+                  ? "bg-green-100 text-green-700"
                   : bettingStatus === "CloseOnly"
-                  ? "bg-yellow-500"
-                  : "bg-red-500";
+                  ? "bg-yellow-100 text-yellow-700"
+                  : "bg-red-100 text-red-700";
 
               return (
                 <div
                   key={market._id}
-                  className="relative p-3 bg-gray-800 rounded-lg shadow-md transition-all duration-300 hover:scale-105 cursor-pointer"
+                  className="relative p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition cursor-pointer"
                   onClick={() =>
                     bettingStatus !== "Closed" &&
                     navigate(`/play/${market.name}`)
                   }
                 >
-                  {/* Title + Chart Button */}
-                  <div className="flex justify-between items-center mb-1">
-                    <h3 className="text-sm font-semibold">{market.name}</h3>
+                  {/* Top Row */}
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="text-base font-semibold">{market.name}</h3>
                     <div className="flex gap-1">
                       <span
-                        className={`text-xs font-semibold px-2 py-1 rounded-full ${badgeColor}`}
+                        className={`text-sm font-medium px-3 py-1 rounded-full ${badgeClass}`}
                       >
                         {statusText}
                       </span>
                       <button
-                        className="bg-green-600 text-white px-2 py-1 text-xs rounded-md font-semibold hover:bg-green-700"
+                        className="bg-gray-100 text-gray-800 px-2 py-1 text-xs rounded font-medium hover:bg-gray-200"
                         onClick={(e) => {
                           e.stopPropagation();
                           navigate(`/chart/${encodeURIComponent(market.name)}`);
@@ -210,18 +204,16 @@ const HomePage = () => {
                     </div>
                   </div>
 
-                  <div className="text-gray-300">
-                    <p className="text-xs">
-                      Open: {market.openTime} | Close: {market.closeTime}
-                    </p>
-                    <p className="text-sm mt-1 text-yellow-500 font-bold">
+                  <div className="text-sm text-gray-600">
+                    <p>Open: {market.openTime} | Close: {market.closeTime}</p>
+                    <p className="text-lg mt-1 text-blue-600 font-bold">
                       {formatMarketResult(market.results)}
                     </p>
                   </div>
 
                   {bettingStatus !== "Closed" && (
                     <button
-                      className="absolute bottom-3 right-3 bg-purple-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm hover:bg-purple-700"
+                      className="absolute bottom-3 right-3 bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm hover:bg-blue-700"
                       onClick={(e) => {
                         e.stopPropagation();
                         navigate(`/play/${market.name}`);
