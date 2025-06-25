@@ -2,13 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft, faSpinner } from "@fortawesome/free-solid-svg-icons";
-import marketData from "../data/marketResults.json"; // ✅ Use local file
-
-// Date utilities
-const parseDate = (str) => new Date(str + "T00:00:00");
-const formatDate = (date) => date.toLocaleDateString("en-GB");
-const getDayName = (date) =>
-  date.toLocaleDateString("en-US", { weekday: "long" });
+// ⚠️ Removed invalid import of missing JSON file
 
 const MarketChart = () => {
   const navigate = useNavigate();
@@ -18,7 +12,14 @@ const MarketChart = () => {
   const [weeklyResults, setWeeklyResults] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // 🔒 Check if market name exists
+  // 🛑 Fallback data if no API or JSON
+  const marketData = [];
+
+  const parseDate = (str) => new Date(str + "T00:00:00");
+  const formatDate = (date) => date.toLocaleDateString("en-GB");
+  const getDayName = (date) =>
+    date.toLocaleDateString("en-US", { weekday: "long" });
+
   if (!marketName) {
     return (
       <div className="p-4 bg-gray-900 text-white min-h-screen text-center">
@@ -36,7 +37,6 @@ const MarketChart = () => {
     );
   }
 
-  // ✅ UseEffect to group results by week/day from local file
   useEffect(() => {
     const filteredData = marketData.filter(
       (entry) =>
