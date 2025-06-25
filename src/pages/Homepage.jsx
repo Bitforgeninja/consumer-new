@@ -11,13 +11,61 @@ const HomePage = () => {
   const [allMarkets, setAllMarkets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [bannerImageUrl, setBannerImageUrl] = useState("");
-  const [qrCodeUrl, setQrCodeUrl] = useState("");
   const [whatsAppNumber, setWhatsAppNumber] = useState("");
   const [marketClosedMessage, setMarketClosedMessage] = useState("");
 
   const now = new Date();
   const currentHours = now.getHours();
   const currentMinutesInDay = currentHours * 60 + now.getMinutes();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const marketsResponse = await axios.get(
+          "https://backend-pbn5.onrender.com/api/markets"
+        );
+
+        const sortedMarkets = marketsResponse.data.sort((a, b) => {
+          const getTimeInMinutes = (timeStr) => {
+            if (!timeStr) return 0;
+            const [time, ampm] = timeStr.split(" ");
+            let [hours, minutes] = time.split(":").map(Number);
+            if (ampm === "PM" && hours < 12) hours += 12;
+            if (ampm === "AM" && hours === 12) hours = 0;
+            return hours * 60 + minutes;
+          };
+          return getTimeInMinutes(a.openTime) - getTimeInMinutes(b.openTime);
+        });
+
+        setAllMarkets(sortedMarkets);
+
+        const settingsResponse = await axios.get(
+          "https://backend-pbn5.onrender.com/api/admin/platform-settings"
+        );
+
+        const { bannerImageUrl, whatsAppNumber } = settingsResponse.data;
+
+        if (bannerImageUrl) {
+          setBannerImageUrl(bannerImageUrl + "?v=" + Date.now());
+        }
+
+        if (whatsAppNumber) {
+          setWhatsAppNumber(whatsAppNumber);
+        }
+      } catch (error) {
+        if (error.response?.status === 403) {
+          setMarketClosedMessage("Market closed. Please come back later.");
+        } else {
+          console.error("Error fetching data:", error);
+          setMarketClosedMessage("Something went wrong. Please try again.");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const formatMarketResult = (results) => {
     if (currentHours >= 0 && currentHours < 6) return "***-**-***";
@@ -29,101 +77,21 @@ const HomePage = () => {
     return `${open}-${jodi}-${close}`;
   };
 
-  const getTimeInMinutes = (timeStr) => {
-    if (!timeStr) return 0;
-    const [time, ampm] = timeStr.split(" ");
-    let [hours, minutes] = time.split(":").map(Number);
-    if (ampm === "PM" && hours < 12) hours += 12;
-    if (ampm === "AM" && hours === 12) hours = 0;
-    return hours * 60 + minutes;
-  };
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        let marketsResponse;
-        try {
-          marketsResponse = await axios.get(
-            "https://backend-pbn5.onrender.com/api/markets"
-          );
-        } catch (error) {
-          if (error.response && error.response.status === 403) {
-            setMarketClosedMessage(error.response.data.message);
-            return;
-          } else {
-            throw error;
-          }
-        }
-
-        const sortedMarkets = marketsResponse.data.sort(
-          (a, b) => getTimeInMinutes(a.openTime) - getTimeInMinutes(b.openTime)
-        );
-
-        setAllMarkets(sortedMarkets);
-
-        const settingsResponse = await axios.get(
-          "https://backend-pbn5.onrender.com/api/admin/platform-settings"
-        );
-
-        const banner = settingsResponse.data.bannerImageUrl;
-        const qr = settingsResponse.data.qrCodeUrl;
-        const whatsapp = settingsResponse.data.whatsAppNumber;
-
-        if (banner) setBannerImageUrl(banner + "?v=" + Date.now());
-        if (qr) setQrCodeUrl(qr + "?v=" + Date.now());
-        if (whatsapp) setWhatsAppNumber(whatsapp);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        setMarketClosedMessage("Something went wrong. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  if (currentHours >= 0 && currentHours < 6) {
-    return (
-      <div className="font-sans bg-[#f7f7f7] text-gray-900 p-4 min-h-screen">
-        <div className="my-4 max-w-3xl mx-auto overflow-hidden rounded-lg shadow">
-          <img
-            src={
-              bannerImageUrl ||
-              "https://via.placeholder.com/1000x400?text=Loading+Image"
-            }
-            alt="Banner"
-            className="w-full h-48 object-cover rounded-md"
-          />
-        </div>
-
-        <div className="bg-blue-100 text-blue-800 text-base p-2 mb-4 rounded text-center font-medium">
-          Markets will be open after 6 AM
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="font-sans bg-[#f7f7f7] text-gray-900 p-4 min-h-screen">
-      {/* Banner Image */}
+      {/* ✅ Banner Image */}
       <div className="my-4 max-w-3xl mx-auto overflow-hidden rounded-lg shadow">
         <img
-          src={
-            bannerImageUrl ||
-            "https://via.placeholder.com/1000x400?text=Loading+Image"
-          }
+          src={bannerImageUrl || "https://via.placeholder.com/1000x400?text=No+Banner"}
           alt="Banner"
           className="w-full h-48 object-cover rounded-md"
         />
       </div>
 
-      {/* Info */}
       <div className="bg-yellow-100 text-yellow-800 text-sm p-2 rounded text-center font-medium mb-4">
         100% Genuine! Deposits and Withdrawals available 24x7
       </div>
 
-      {/* Buttons */}
       <div className="flex justify-center items-center gap-4 mb-6">
         <button
           className="text-base font-medium py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700"
@@ -133,12 +101,7 @@ const HomePage = () => {
         </button>
         <button
           className="text-base font-medium py-2 px-4 bg-green-600 text-white rounded-md hover:bg-green-700"
-          onClick={() => navigate("/add-funds", {
-            state: {
-              qrCodeUrl,
-              upiId: "from-settings", // Can handle in AddFunds
-            }
-          })}
+          onClick={() => navigate("/add-funds")}
         >
           + Add Points
         </button>
@@ -162,6 +125,15 @@ const HomePage = () => {
             <p className="text-center text-gray-500">No markets available.</p>
           ) : (
             allMarkets.map((market) => {
+              const getTimeInMinutes = (timeStr) => {
+                if (!timeStr) return 0;
+                const [time, ampm] = timeStr.split(" ");
+                let [hours, minutes] = time.split(":").map(Number);
+                if (ampm === "PM" && hours < 12) hours += 12;
+                if (ampm === "AM" && hours === 12) hours = 0;
+                return hours * 60 + minutes;
+              };
+
               const openMinutes = getTimeInMinutes(market.openTime);
               const closeMinutes = getTimeInMinutes(market.closeTime);
               const openCutoff = openMinutes - 10;
@@ -223,7 +195,6 @@ const HomePage = () => {
                       </button>
                     </div>
                   </div>
-
                   <div className="text-sm text-gray-600">
                     <p>
                       Open: {market.openTime} | Close: {market.closeTime}
@@ -232,7 +203,6 @@ const HomePage = () => {
                       {formatMarketResult(market.results)}
                     </p>
                   </div>
-
                   {bettingStatus !== "Closed" && (
                     <button
                       className="absolute bottom-3 right-3 bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm hover:bg-blue-700"
@@ -251,7 +221,7 @@ const HomePage = () => {
         </div>
       )}
 
-      {/* WhatsApp Button */}
+      {/* ✅ WhatsApp Button */}
       {whatsAppNumber && (
         <a
           href={`https://wa.me/${whatsAppNumber}`}
