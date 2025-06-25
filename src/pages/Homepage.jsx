@@ -1,4 +1,3 @@
-// ✅ Copied and updated – banner image cache fixed
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -59,15 +58,14 @@ const HomePage = () => {
 
         setAllMarkets(sortedMarkets);
 
-        // ✅ Add ?v=timestamp to force image refresh
         const settingsResponse = await axios.get(
           "https://backend-pbn5.onrender.com/api/admin/platform-settings"
         );
-        const updatedBannerUrl = settingsResponse.data.bannerImageUrl;
-        if (updatedBannerUrl) {
-          setBannerImageUrl(updatedBannerUrl + "?v=" + Date.now());
-        }
 
+        const url = settingsResponse.data.bannerImageUrl;
+        if (url) {
+          setBannerImageUrl(url + "?v=" + Date.now()); // ✅ Cache-busting
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
         setMarketClosedMessage("Something went wrong. Please try again.");
@@ -101,7 +99,6 @@ const HomePage = () => {
 
   return (
     <div className="font-sans bg-[#f7f7f7] text-gray-900 p-4 min-h-screen">
-      {/* Banner */}
       <div className="my-4 max-w-3xl mx-auto overflow-hidden rounded-lg shadow">
         <img
           src={
@@ -188,7 +185,6 @@ const HomePage = () => {
                     navigate(`/play/${market.name}`)
                   }
                 >
-                  {/* Top Row */}
                   <div className="flex justify-between items-center mb-2">
                     <h3 className="text-base font-semibold">{market.name}</h3>
                     <div className="flex gap-1">
@@ -197,16 +193,14 @@ const HomePage = () => {
                       >
                         {statusText}
                       </span>
-
-                      {/* 📊 Chart Button */}
                       <button
                         className="bg-gray-100 text-gray-800 px-2 py-1 text-xs rounded font-medium hover:bg-gray-200"
                         onClick={(e) => {
                           e.stopPropagation();
                           navigate("/market-chart", {
                             state: {
-                              marketName: market.name.trim().toLowerCase(),
-                            },
+                              marketName: market.name.trim().toLowerCase()
+                            }
                           });
                         }}
                       >
