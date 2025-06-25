@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft, faSpinner } from "@fortawesome/free-solid-svg-icons";
-import marketData from "../data/marketResults.json"; // ✅ Use local file
 
 // Date utilities
 const parseDate = (str) => new Date(str + "T00:00:00");
@@ -15,17 +15,16 @@ const MarketChart = () => {
   const location = useLocation();
   const marketName = location.state?.marketName;
 
+  const [marketId, setMarketId] = useState("");
   const [weeklyResults, setWeeklyResults] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // 🔒 Check if market name exists
+  // If reloaded without state
   if (!marketName) {
     return (
       <div className="p-4 bg-gray-900 text-white min-h-screen text-center">
         <h2 className="text-2xl font-bold text-red-500 mb-4">Market Missing</h2>
-        <p className="text-yellow-400">
-          Please return to homepage and click the Chart again.
-        </p>
+        <p className="text-yellow-400">Please return to homepage and click the Chart again.</p>
         <button
           onClick={() => navigate("/")}
           className="bg-yellow-400 text-black mt-6 py-2 px-4 rounded hover:bg-yellow-500"
@@ -36,70 +35,110 @@ const MarketChart = () => {
     );
   }
 
-  // ✅ UseEffect to group results by week/day from local file
+  // Step 1: Fetch market ID
   useEffect(() => {
-    const filteredData = marketData.filter(
-      (entry) =>
-        entry.marketName?.toLowerCase().trim() ===
-        marketName?.toLowerCase().trim()
-    );
-
-    if (filteredData.length === 0) {
-      setWeeklyResults([]);
-      setIsLoading(false);
-      return;
-    }
-
-    const latestByDate = {};
-    filteredData.forEach((entry) => {
-      const dateKey = entry.date;
-      latestByDate[dateKey] = entry;
-    });
-
-    const weeklyData = {};
-    Object.values(latestByDate).forEach((entry) => {
-      const date = parseDate(entry.date);
-      const startOfWeek = new Date(date);
-      startOfWeek.setDate(
-        date.getDate() - (date.getDay() === 0 ? 6 : date.getDay() - 1)
-      );
-
-      const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(startOfWeek.getDate() + 6);
-
-      const weekKey = `${formatDate(startOfWeek)} to ${formatDate(endOfWeek)}`;
-      const dayName = getDayName(date);
-
-      if (!weeklyData[weekKey]) {
-        weeklyData[weekKey] = {
-          dateRange: weekKey,
-          weekStart: startOfWeek.getTime(),
-          results: {},
-        };
+    const getMarketId = async () => {
+      try {
+        const res = await axios.get(
+          `https://backend-pbn5.onrender.com/api/markets/get-market-id/${encodeURIComponent(marketName)}`
+        );
+        setMarketId(res.data.marketId);
+      } catch (err) {
+        console.error("Error getting market ID:", err.message);
+        setIsLoading(false);
       }
+    };
 
-      weeklyData[weekKey].results[dayName] = {
-        left: entry.openNumber?.split("") || ["-", "-", "-"],
-        center: entry.jodiResult || "-",
-        right: entry.closeNumber?.split("") || ["-", "-", "-"],
-      };
-    });
-
-    const sortedWeeks = Object.values(weeklyData).sort(
-      (a, b) => b.weekStart - a.weekStart
-    );
-
-    setWeeklyResults(sortedWeeks);
-    setIsLoading(false);
+    getMarketId();
   }, [marketName]);
+
+  // Step 2: Fetch market results by ID
+  useEffect(() => {
+    if (!marketId) return;
+
+    const fetchResults = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) return navigate("/login");
+
+        const res = await axios.get(
+          `https://backend-pbn5.onrender.com/api/markets/get-results/${marketId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        const rawData = res.data;
+
+        // Combine results per date, preferring valid (non-dummy) entries
+        const latestByDate = {};
+        rawData.forEach((entry) => {
+          const dateKey = entry.date;
+          const isDummy =
+            (entry.openNumber === "000" || entry.openNumber === "0") &&
+            (entry.closeNumber === "000" || entry.closeNumber === "0");
+
+          if (!latestByDate[dateKey]) {
+            latestByDate[dateKey] = entry;
+          } else {
+            const existing = latestByDate[dateKey];
+            const existingDummy =
+              (existing.openNumber === "000" || existing.openNumber === "0") &&
+              (existing.closeNumber === "000" || existing.closeNumber === "0");
+            if (existingDummy && !isDummy) {
+              latestByDate[dateKey] = entry;
+            }
+          }
+        });
+
+        // Group by week
+        const weeklyData = {};
+        Object.values(latestByDate).forEach((entry) => {
+          const date = parseDate(entry.date);
+          if (isNaN(date)) return;
+
+          const startOfWeek = new Date(date);
+          startOfWeek.setDate(date.getDate() - (date.getDay() === 0 ? 6 : date.getDay() - 1));
+          const endOfWeek = new Date(startOfWeek);
+          endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+          const weekKey = `${formatDate(startOfWeek)} to ${formatDate(endOfWeek)}`;
+          const dayName = getDayName(date);
+
+          if (!weeklyData[weekKey]) {
+            weeklyData[weekKey] = {
+              dateRange: weekKey,
+              weekStart: startOfWeek.getTime(),
+              results: {},
+            };
+          }
+
+          weeklyData[weekKey].results[dayName] = {
+            left: entry.openNumber?.split("") || ["-", "-", "-"],
+            center: entry.jodiResult || "-",
+            right: entry.closeNumber?.split("") || ["-", "-", "-"],
+          };
+        });
+
+        // Sort by latest week first
+        const sortedWeeks = Object.values(weeklyData).sort(
+          (a, b) => b.weekStart - a.weekStart
+        );
+
+        setWeeklyResults(sortedWeeks);
+        setIsLoading(false);
+      } catch (err) {
+        console.error("Error fetching results:", err.message);
+        setIsLoading(false);
+      }
+    };
+
+    fetchResults();
+  }, [marketId, navigate]);
 
   const Loader = () => (
     <div className="flex flex-col items-center py-12">
-      <FontAwesomeIcon
-        icon={faSpinner}
-        spin
-        className="text-yellow-500 text-5xl mb-4"
-      />
+      <FontAwesomeIcon icon={faSpinner} spin className="text-yellow-500 text-5xl mb-4" />
       <p className="text-xl text-yellow-400">Loading chart...</p>
     </div>
   );
@@ -125,18 +164,8 @@ const MarketChart = () => {
             <thead>
               <tr className="bg-yellow-500 text-black">
                 <th className="p-2 border">Date Range</th>
-                {[
-                  "Monday",
-                  "Tuesday",
-                  "Wednesday",
-                  "Thursday",
-                  "Friday",
-                  "Saturday",
-                  "Sunday",
-                ].map((day) => (
-                  <th key={day} className="p-2 border">
-                    {day}
-                  </th>
+                {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => (
+                  <th key={day} className="p-2 border">{day}</th>
                 ))}
               </tr>
             </thead>
@@ -147,15 +176,7 @@ const MarketChart = () => {
                     <td className="font-semibold text-yellow-400 p-2 border">
                       {week.dateRange}
                     </td>
-                    {[
-                      "Monday",
-                      "Tuesday",
-                      "Wednesday",
-                      "Thursday",
-                      "Friday",
-                      "Saturday",
-                      "Sunday",
-                    ].map((day, idx) => {
+                    {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day, idx) => {
                       const dayData = week.results[day] || {
                         left: ["-", "-", "-"],
                         center: "-",
