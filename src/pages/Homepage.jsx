@@ -39,14 +39,14 @@ const HomePage = () => {
 
         setAllMarkets(sortedMarkets);
 
-        const settingsResponse = await axios.get(
+        const settingsRes = await axios.get(
           "https://backend-pbn5.onrender.com/api/admin/platform-settings"
         );
 
-        const { bannerImageUrl, whatsAppNumber } = settingsResponse.data;
+        const { bannerImageUrl, whatsAppNumber } = settingsRes.data;
 
         if (bannerImageUrl) {
-          setBannerImageUrl(bannerImageUrl + "?v=" + Date.now());
+          setBannerImageUrl(bannerImageUrl + "?t=" + Date.now()); // 💥 Cache-busting
         }
 
         if (whatsAppNumber) {
