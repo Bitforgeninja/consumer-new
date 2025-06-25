@@ -7,9 +7,12 @@ import { faWhatsapp } from "@fortawesome/free-brands-svg-icons";
 
 const HomePage = () => {
   const navigate = useNavigate();
+
   const [allMarkets, setAllMarkets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [bannerImageUrl, setBannerImageUrl] = useState("");
+  const [qrCodeUrl, setQrCodeUrl] = useState("");
+  const [whatsAppNumber, setWhatsAppNumber] = useState("");
   const [marketClosedMessage, setMarketClosedMessage] = useState("");
 
   const now = new Date();
@@ -62,10 +65,13 @@ const HomePage = () => {
           "https://backend-pbn5.onrender.com/api/admin/platform-settings"
         );
 
-        const url = settingsResponse.data.bannerImageUrl;
-        if (url) {
-          setBannerImageUrl(url + "?v=" + Date.now()); // ✅ Cache-busting
-        }
+        const banner = settingsResponse.data.bannerImageUrl;
+        const qr = settingsResponse.data.qrCodeUrl;
+        const whatsapp = settingsResponse.data.whatsAppNumber;
+
+        if (banner) setBannerImageUrl(banner + "?v=" + Date.now());
+        if (qr) setQrCodeUrl(qr + "?v=" + Date.now());
+        if (whatsapp) setWhatsAppNumber(whatsapp);
       } catch (error) {
         console.error("Error fetching data:", error);
         setMarketClosedMessage("Something went wrong. Please try again.");
@@ -90,6 +96,7 @@ const HomePage = () => {
             className="w-full h-48 object-cover rounded-md"
           />
         </div>
+
         <div className="bg-blue-100 text-blue-800 text-base p-2 mb-4 rounded text-center font-medium">
           Markets will be open after 6 AM
         </div>
@@ -99,6 +106,7 @@ const HomePage = () => {
 
   return (
     <div className="font-sans bg-[#f7f7f7] text-gray-900 p-4 min-h-screen">
+      {/* Banner Image */}
       <div className="my-4 max-w-3xl mx-auto overflow-hidden rounded-lg shadow">
         <img
           src={
@@ -110,10 +118,12 @@ const HomePage = () => {
         />
       </div>
 
+      {/* Info */}
       <div className="bg-yellow-100 text-yellow-800 text-sm p-2 rounded text-center font-medium mb-4">
         100% Genuine! Deposits and Withdrawals available 24x7
       </div>
 
+      {/* Buttons */}
       <div className="flex justify-center items-center gap-4 mb-6">
         <button
           className="text-base font-medium py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700"
@@ -123,7 +133,12 @@ const HomePage = () => {
         </button>
         <button
           className="text-base font-medium py-2 px-4 bg-green-600 text-white rounded-md hover:bg-green-700"
-          onClick={() => navigate("/add-funds")}
+          onClick={() => navigate("/add-funds", {
+            state: {
+              qrCodeUrl,
+              upiId: "from-settings", // Can handle in AddFunds
+            }
+          })}
         >
           + Add Points
         </button>
@@ -237,15 +252,17 @@ const HomePage = () => {
       )}
 
       {/* WhatsApp Button */}
-      <a
-        href="https://wa.me/917051098359"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 bg-green-600 p-4 rounded-full text-white shadow-lg hover:bg-green-700 transition-transform duration-300 transform hover:scale-110 flex items-center justify-center"
-        style={{ zIndex: 1000 }}
-      >
-        <FontAwesomeIcon icon={faWhatsapp} size="lg" />
-      </a>
+      {whatsAppNumber && (
+        <a
+          href={`https://wa.me/${whatsAppNumber}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="fixed bottom-6 right-6 bg-green-600 p-4 rounded-full text-white shadow-lg hover:bg-green-700 transition-transform duration-300 transform hover:scale-110 flex items-center justify-center"
+          style={{ zIndex: 1000 }}
+        >
+          <FontAwesomeIcon icon={faWhatsapp} size="lg" />
+        </a>
+      )}
     </div>
   );
 };
