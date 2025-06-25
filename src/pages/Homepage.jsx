@@ -1,4 +1,4 @@
-// ✅ Copied from your version, only chart button updated to lowercase for consistency
+// ✅ Copied and updated – banner image cache fixed
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -59,10 +59,15 @@ const HomePage = () => {
 
         setAllMarkets(sortedMarkets);
 
+        // ✅ Add ?v=timestamp to force image refresh
         const settingsResponse = await axios.get(
           "https://backend-pbn5.onrender.com/api/admin/platform-settings"
         );
-        setBannerImageUrl(settingsResponse.data.bannerImageUrl);
+        const updatedBannerUrl = settingsResponse.data.bannerImageUrl;
+        if (updatedBannerUrl) {
+          setBannerImageUrl(updatedBannerUrl + "?v=" + Date.now());
+        }
+
       } catch (error) {
         console.error("Error fetching data:", error);
         setMarketClosedMessage("Something went wrong. Please try again.");
@@ -87,7 +92,6 @@ const HomePage = () => {
             className="w-full h-48 object-cover rounded-md"
           />
         </div>
-
         <div className="bg-blue-100 text-blue-800 text-base p-2 mb-4 rounded text-center font-medium">
           Markets will be open after 6 AM
         </div>
@@ -201,8 +205,8 @@ const HomePage = () => {
                           e.stopPropagation();
                           navigate("/market-chart", {
                             state: {
-                              marketName: market.name.trim().toLowerCase()
-                            }
+                              marketName: market.name.trim().toLowerCase(),
+                            },
                           });
                         }}
                       >
@@ -212,7 +216,9 @@ const HomePage = () => {
                   </div>
 
                   <div className="text-sm text-gray-600">
-                    <p>Open: {market.openTime} | Close: {market.closeTime}</p>
+                    <p>
+                      Open: {market.openTime} | Close: {market.closeTime}
+                    </p>
                     <p className="text-lg mt-1 text-blue-600 font-bold">
                       {formatMarketResult(market.results)}
                     </p>
