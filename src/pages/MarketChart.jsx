@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft, faSpinner } from "@fortawesome/free-solid-svg-icons";
-// ⚠️ Removed invalid import of missing JSON file
 
 const MarketChart = () => {
   const navigate = useNavigate();
@@ -12,13 +11,94 @@ const MarketChart = () => {
   const [weeklyResults, setWeeklyResults] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // 🛑 Fallback data if no API or JSON
-  const marketData = [];
-
-  const parseDate = (str) => new Date(str + "T00:00:00");
+  const parseDate = (str) => new Date(str.split("-").reverse().join("-") + "T00:00:00");
   const formatDate = (date) => date.toLocaleDateString("en-GB");
   const getDayName = (date) =>
     date.toLocaleDateString("en-US", { weekday: "long" });
+
+  useEffect(() => {
+    const fetchMarketCharts = async () => {
+      try {
+        const res = await fetch("/data/market-charts.json");
+        const allData = await res.json();
+
+        const filteredData = allData.filter(
+          (entry) =>
+            entry.market?.toLowerCase().trim() ===
+            marketName?.toLowerCase().trim()
+        );
+
+        if (filteredData.length === 0) {
+          setWeeklyResults([]);
+          setIsLoading(false);
+          return;
+        }
+
+        const weeklyData = {};
+
+        filteredData.forEach((entry) => {
+          const date = parseDate(entry.date);
+          const startOfWeek = new Date(date);
+          startOfWeek.setDate(date.getDate() - (date.getDay() === 0 ? 6 : date.getDay() - 1));
+
+          const endOfWeek = new Date(startOfWeek);
+          endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+          const weekKey = `${formatDate(startOfWeek)} to ${formatDate(endOfWeek)}`;
+          const dayName = getDayName(date);
+
+          if (!weeklyData[weekKey]) {
+            weeklyData[weekKey] = {
+              dateRange: weekKey,
+              weekStart: startOfWeek.getTime(),
+              results: {},
+            };
+          }
+
+          // Chart data values
+          const left = entry.left || ["-", "-", "-"];
+          const center = entry.center || "-";
+          const right = entry.right || ["-", "-", "-"];
+
+          weeklyData[weekKey].results[dayName] = { left, center, right };
+        });
+
+        const sortedWeeks = Object.values(weeklyData).sort(
+          (a, b) => b.weekStart - a.weekStart
+        );
+
+        setWeeklyResults(sortedWeeks);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error loading chart data", error);
+        setWeeklyResults([]);
+        setIsLoading(false);
+      }
+    };
+
+    fetchMarketCharts();
+  }, [marketName]);
+
+  const days = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+  ];
+
+  const Loader = () => (
+    <div className="flex flex-col items-center py-12">
+      <FontAwesomeIcon
+        icon={faSpinner}
+        spin
+        className="text-yellow-500 text-5xl mb-4"
+      />
+      <p className="text-xl text-yellow-400">Loading chart...</p>
+    </div>
+  );
 
   if (!marketName) {
     return (
@@ -36,73 +116,6 @@ const MarketChart = () => {
       </div>
     );
   }
-
-  useEffect(() => {
-    const filteredData = marketData.filter(
-      (entry) =>
-        entry.marketName?.toLowerCase().trim() ===
-        marketName?.toLowerCase().trim()
-    );
-
-    if (filteredData.length === 0) {
-      setWeeklyResults([]);
-      setIsLoading(false);
-      return;
-    }
-
-    const latestByDate = {};
-    filteredData.forEach((entry) => {
-      const dateKey = entry.date;
-      latestByDate[dateKey] = entry;
-    });
-
-    const weeklyData = {};
-    Object.values(latestByDate).forEach((entry) => {
-      const date = parseDate(entry.date);
-      const startOfWeek = new Date(date);
-      startOfWeek.setDate(
-        date.getDate() - (date.getDay() === 0 ? 6 : date.getDay() - 1)
-      );
-
-      const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(startOfWeek.getDate() + 6);
-
-      const weekKey = `${formatDate(startOfWeek)} to ${formatDate(endOfWeek)}`;
-      const dayName = getDayName(date);
-
-      if (!weeklyData[weekKey]) {
-        weeklyData[weekKey] = {
-          dateRange: weekKey,
-          weekStart: startOfWeek.getTime(),
-          results: {},
-        };
-      }
-
-      weeklyData[weekKey].results[dayName] = {
-        left: entry.openNumber?.split("") || ["-", "-", "-"],
-        center: entry.jodiResult || "-",
-        right: entry.closeNumber?.split("") || ["-", "-", "-"],
-      };
-    });
-
-    const sortedWeeks = Object.values(weeklyData).sort(
-      (a, b) => b.weekStart - a.weekStart
-    );
-
-    setWeeklyResults(sortedWeeks);
-    setIsLoading(false);
-  }, [marketName]);
-
-  const Loader = () => (
-    <div className="flex flex-col items-center py-12">
-      <FontAwesomeIcon
-        icon={faSpinner}
-        spin
-        className="text-yellow-500 text-5xl mb-4"
-      />
-      <p className="text-xl text-yellow-400">Loading chart...</p>
-    </div>
-  );
 
   return (
     <div className="p-4 bg-gray-900 text-white min-h-screen">
@@ -123,17 +136,9 @@ const MarketChart = () => {
         <div className="overflow-x-auto">
           <table className="w-full border-collapse border border-gray-700">
             <thead>
-              <tr className="bg-yellow-500 text-black">
+              <tr className="bg-yellow-500 text-black text-sm sm:text-md">
                 <th className="p-2 border">Date Range</th>
-                {[
-                  "Monday",
-                  "Tuesday",
-                  "Wednesday",
-                  "Thursday",
-                  "Friday",
-                  "Saturday",
-                  "Sunday",
-                ].map((day) => (
+                {days.map((day) => (
                   <th key={day} className="p-2 border">
                     {day}
                   </th>
@@ -147,37 +152,32 @@ const MarketChart = () => {
                     <td className="font-semibold text-yellow-400 p-2 border">
                       {week.dateRange}
                     </td>
-                    {[
-                      "Monday",
-                      "Tuesday",
-                      "Wednesday",
-                      "Thursday",
-                      "Friday",
-                      "Saturday",
-                      "Sunday",
-                    ].map((day, idx) => {
+                    {days.map((day, idx) => {
                       const dayData = week.results[day] || {
                         left: ["-", "-", "-"],
                         center: "-",
                         right: ["-", "-", "-"],
                       };
+
                       return (
-                        <td key={idx} className="p-2 border">
-                          <table className="w-full border-collapse border border-gray-500">
+                        <td key={idx} className="p-1 border">
+                          <table className="w-full border border-gray-600 text-sm">
                             <tbody>
                               {[0, 1, 2].map((i) => (
                                 <tr key={i}>
-                                  <td className="border px-1 text-sm">
+                                  <td className="border text-center px-1">
                                     {dayData.left[i]}
                                   </td>
-                                  <td className="border px-1">
-                                    {i === 1 && (
-                                      <strong className="text-red-500 text-xl">
+                                  <td className="border text-center px-1">
+                                    {i === 1 ? (
+                                      <span className="text-red-500 font-bold">
                                         {dayData.center}
-                                      </strong>
+                                      </span>
+                                    ) : (
+                                      ""
                                     )}
                                   </td>
-                                  <td className="border px-1 text-sm">
+                                  <td className="border text-center px-1">
                                     {dayData.right[i]}
                                   </td>
                                 </tr>
