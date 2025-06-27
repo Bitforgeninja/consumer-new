@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 
-// Utility to calculate time in minutes
 const getTimeInMinutes = (timeStr) => {
   if (!timeStr) return 0;
   const [time, ampm] = timeStr.trim().split(" ");
@@ -12,7 +11,6 @@ const getTimeInMinutes = (timeStr) => {
   return hours * 60 + minutes;
 };
 
-// Check if Open betting is allowed (closes 10 min before open time)
 const isOpenBettingAllowed = (openTime) => {
   const now = new Date();
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
@@ -32,6 +30,7 @@ const SingleDigit = () => {
   const [betType, setBetType] = useState("Open");
   const [markets, setMarkets] = useState([]);
   const [currentMarket, setCurrentMarket] = useState(null);
+
   const marketName = location.state?.marketName || "Milan Day";
   const gameName = "Single Digit";
 
@@ -97,7 +96,6 @@ const SingleDigit = () => {
   };
 
   const handleAddBet = () => {
-    // ✅ Open betting cutoff check
     if (betType === "Open" && currentMarket && !isOpenBettingAllowed(currentMarket.openTime)) {
       setError(`⚠️ Open betting is currently closed for ${marketName}`);
       return;
@@ -155,10 +153,10 @@ const SingleDigit = () => {
         const response = await axios.post(
           "https://backend-pbn5.onrender.com/api/bets/place",
           {
-            marketName,
-            gameName,
-            number: bet.digit,
-            amount: bet.points,
+            marketName: marketName,
+            gameName: gameName,
+            number: parseInt(bet.digit),
+            amount: parseInt(bet.points),
             winningRatio: 9,
             betType: bet.betType,
           },
@@ -170,7 +168,7 @@ const SingleDigit = () => {
           }
         );
 
-        if (response.status === 200) {
+        if (response.status === 201 || response.status === 200) {
           confirmedBets.push({
             ...bet,
             isPlaced: true,
@@ -208,14 +206,12 @@ const SingleDigit = () => {
         </div>
       </header>
 
-      {/* Market status message */}
       {betType === "Open" && currentMarket && !isOpenBettingAllowed(currentMarket.openTime) && (
         <div className="bg-red-600 text-white px-3 py-2 rounded-md text-center text-sm mb-4">
           ⚠️ Open betting is currently closed for {marketName}
         </div>
       )}
 
-      {/* Bet type selector */}
       <div className="flex justify-center mb-4">
         <button
           onClick={() => setBetType("Open")}
@@ -235,7 +231,6 @@ const SingleDigit = () => {
         </button>
       </div>
 
-      {/* Input Fields */}
       <div className="grid grid-cols-3 gap-3 mb-4">
         <input
           type="number"
@@ -259,12 +254,10 @@ const SingleDigit = () => {
         </button>
       </div>
 
-      {/* Error Message */}
       {error && (
         <div className="bg-red-600 text-white px-3 py-2 rounded-md text-center text-sm mb-4">{error}</div>
       )}
 
-      {/* Current Bets */}
       <div className="bg-gray-800 p-4 rounded-md shadow-md mb-4">
         <table className="w-full table-auto mb-3 text-sm">
           <thead>
@@ -295,7 +288,6 @@ const SingleDigit = () => {
         </table>
       </div>
 
-      {/* Submit Button */}
       <button
         onClick={handlePlaceBet}
         disabled={bets.length === 0}
@@ -306,7 +298,6 @@ const SingleDigit = () => {
         Submit
       </button>
 
-      {/* Submitted Bets */}
       <div className="bg-gray-800 p-4 rounded-md shadow-md">
         <h3 className="text-base font-bold mb-3">Submitted</h3>
         <table className="w-full table-auto text-sm">
