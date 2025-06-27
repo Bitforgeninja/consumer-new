@@ -1,135 +1,212 @@
 [
   {
     "market": "MILAN MORNING",
-    "date": "26-06-2025",
+    "date": "01-06-2025",
+    "left": ["2", "1", "8"],
+    "center": "84",
+    "right": ["2", "4", "8"]
+  },
+  {
+    "market": "MILAN MORNING",
+    "date": "02-06-2025",
+    "left": ["3", "0", "7"],
+    "center": "55",
+    "right": ["2", "5", "8"]
+  },
+  {
+    "market": "MILAN MORNING",
+    "date": "03-06-2025",
+    "left": ["1", "6", "8"],
+    "center": "34",
+    "right": ["4", "3", "9"]
+  },
+  {
+    "market": "MILAN MORNING",
+    "date": "04-06-2025",
+    "left": ["7", "4", "6"],
+    "center": "41",
+    "right": ["1", "9", "5"]
+  },
+  {
+    "market": "MILAN MORNING",
+    "date": "05-06-2025",
+    "left": ["3", "2", "6"],
+    "center": "03",
+    "right": ["7", "0", "3"]
+  },
+  {
+    "market": "MILAN MORNING",
+    "date": "06-06-2025",
+    "left": ["9", "4", "2"],
+    "center": "97",
+    "right": ["0", "6", "7"]
+  },
+  {
+    "market": "MILAN MORNING",
+    "date": "07-06-2025",
+    "left": ["3", "1", "9"],
+    "center": "84",
+    "right": ["2", "5", "4"]
+  },
+  {
+    "market": "MILAN MORNING",
+    "date": "08-06-2025",
+    "left": ["2", "8", "5"],
+    "center": "26",
+    "right": ["7", "0", "7"]
+  },
+  {
+    "market": "MILAN MORNING",
+    "date": "09-06-2025",
+    "left": ["4", "6", "8"],
+    "center": "29",
+    "right": ["1", "8", "4"]
+  },
+  {
+    "market": "MILAN MORNING",
+    "date": "10-06-2025",
+    "left": ["0", "1", "1"],
+    "center": "35",
+    "right": ["5", "0", "2"]
+  },
+  {
+    "market": "MILAN MORNING",
+    "date": "11-06-2025",
+    "left": ["3", "9", "0"],
+    "center": "25",
+    "right": ["2", "4", "6"]
+  },
+  {
+    "market": "MILAN MORNING",
+    "date": "12-06-2025",
+    "left": ["3", "1", "4"],
+    "center": "03",
+    "right": ["1", "0", "5"]
+  },
+  {
+    "market": "MILAN MORNING",
+    "date": "13-06-2025",
+    "left": ["2", "0", "4"],
+    "center": "71",
+    "right": ["3", "7", "0"]
+  },
+  {
+    "market": "MILAN MORNING",
+    "date": "14-06-2025",
+    "left": ["2", "3", "8"],
+    "center": "26",
+    "right": ["4", "3", "1"]
+  },
+  {
+    "market": "MILAN MORNING",
+    "date": "15-06-2025",
+    "left": ["5", "2", "6"],
+    "center": "91",
+    "right": ["6", "0", "3"]
+  },
+  {
+    "market": "MILAN MORNING",
+    "date": "16-06-2025",
+    "left": ["7", "8", "9"],
+    "center": "25",
+    "right": ["1", "6", "7"]
+  },
+  {
+    "market": "MILAN MORNING",
+    "date": "17-06-2025",
+    "left": ["3", "2", "5"],
+    "center": "24",
+    "right": ["7", "4", "1"]
+  },
+  {
+    "market": "MILAN MORNING",
+    "date": "18-06-2025",
+    "left": ["6", "0", "3"],
+    "center": "38",
+    "right": ["9", "0", "2"]
+  },
+  {
+    "market": "MILAN MORNING",
+    "date": "19-06-2025",
+    "left": ["1", "5", "7"],
+    "center": "91",
+    "right": ["8", "2", "1"]
+  },
+  {
+    "market": "MILAN MORNING",
+    "date": "20-06-2025",
+    "left": ["4", "1", "0"],
+    "center": "95",
+    "right": ["6", "6", "3"]
+  },
+  {
+    "market": "MILAN MORNING",
+    "date": "21-06-2025",
+    "left": ["4", "5", "7"],
+    "center": "65",
+    "right": ["0", "5", "8"]
+  },
+  {
+    "market": "MILAN MORNING",
+    "date": "22-06-2025",
+    "left": ["3", "0", "8"],
+    "center": "29",
+    "right": ["5", "9", "9"]
+  },
+  {
+    "market": "MILAN MORNING",
+    "date": "23-06-2025",
+    "left": ["3", "4", "9"],
+    "center": "90",
+    "right": ["6", "7", "0"]
+  },
+  {
+    "market": "MILAN MORNING",
+    "date": "24-06-2025",
+    "left": ["1", "9", "9"],
+    "center": "63",
+    "right": ["2", "8", "5"]
+  },
+  {
+    "market": "MILAN MORNING",
+    "date": "25-06-2025",
     "left": ["2", "1", "7"],
     "center": "86",
     "right": ["4", "6", "1"]
   },
   {
     "market": "MILAN MORNING",
-    "date": "25-06-2025",
-    "left": ["3", "5", "8"],
-    "center": "67",
-    "right": ["1", "2", "6"]
-  },
-  {
-    "market": "KALYAN MORNING",
     "date": "26-06-2025",
-    "left": ["5", "2", "0"],
-    "center": "76",
-    "right": ["3", "4", "9"]
+    "left": ["2", "8", "8"],
+    "center": "84",
+    "right": ["2", "4", "8"]
   },
   {
-    "market": "KALYAN MORNING",
-    "date": "25-06-2025",
-    "left": ["4", "1", "0"],
-    "center": "98",
-    "right": ["6", "4", "8"]
-  },
-  {
-    "market": "MADHUR MORNING",
-    "date": "26-06-2025",
-    "left": ["6", "4", "9"],
-    "center": "38",
-    "right": ["3", "2", "3"]
-  },
-  {
-    "market": "SRIDEVI",
-    "date": "26-06-2025",
-    "left": ["0", "5", "7"],
-    "center": "22",
-    "right": ["6", "0", "6"]
-  },
-  {
-    "market": "MADHURI",
-    "date": "26-06-2025",
-    "left": ["1", "4", "2"],
-    "center": "74",
-    "right": ["2", "8", "4"]
-  },
-  {
-    "market": "PADMAVATHI",
-    "date": "26-06-2025",
-    "left": ["3", "6", "5"],
-    "center": "91",
-    "right": ["9", "0", "8"]
-  },
-  {
-    "market": "TIME BAZAR",
-    "date": "25-06-2025",
-    "left": ["8", "2", "1"],
-    "center": "56",
-    "right": ["1", "7", "7"]
-  },
-  {
-    "market": "MADHUR DAY",
-    "date": "25-06-2025",
-    "left": ["4", "2", "1"],
-    "center": "68",
-    "right": ["1", "9", "2"]
-  },
-  {
-    "market": "MILAN DAY",
-    "date": "25-06-2025",
-    "left": ["9", "5", "3"],
-    "center": "76",
-    "right": ["2", "5", "9"]
-  },
-  {
-    "market": "KALYAN",
-    "date": "25-06-2025",
-    "left": ["8", "1", "0"],
-    "center": "97",
-    "right": ["3", "9", "5"]
-  },
-  {
-    "market": "SRIDEVI NIGHT",
-    "date": "25-06-2025",
-    "left": ["2", "3", "5"],
-    "center": "86",
-    "right": ["5", "4", "5"]
-  },
-  {
-    "market": "MADHUR NIGHT",
-    "date": "25-06-2025",
-    "left": ["6", "9", "3"],
-    "center": "83",
-    "right": ["1", "2", "6"]
-  },
-  {
-    "market": "MILAN NIGHT",
-    "date": "25-06-2025",
-    "left": ["1", "8", "7"],
-    "center": "62",
-    "right": ["0", "5", "7"]
-  },
-  {
-    "market": "MAIN BAZAR",
-    "date": "25-06-2025",
-    "left": ["4", "6", "2"],
-    "center": "25",
-    "right": ["2", "2", "1"]
-  },
-  {
-    "market": "OLD MAIN MUMBAI",
-    "date": "25-06-2025",
-    "left": ["3", "3", "7"],
-    "center": "38",
-    "right": ["5", "2", "1"]
-  },
-  {
-    "market": "RAJDHANI NIGHT",
-    "date": "25-06-2025",
-    "left": ["7", "5", "0"],
+    "market": "MILAN MORNING",
+    "date": "27-06-2025",
+    "left": ["3", "5", "9"],
     "center": "23",
-    "right": ["1", "7", "5"]
+    "right": ["8", "0", "4"]
   },
   {
-    "market": "KALYAN NIGHT",
-    "date": "25-06-2025",
-    "left": ["2", "8", "4"],
-    "center": "97",
-    "right": ["4", "3", "0"]
+    "market": "MILAN MORNING",
+    "date": "28-06-2025",
+    "left": ["6", "1", "9"],
+    "center": "26",
+    "right": ["1", "7", "2"]
+  },
+  {
+    "market": "MILAN MORNING",
+    "date": "29-06-2025",
+    "left": ["2", "3", "1"],
+    "center": "95",
+    "right": ["6", "0", "3"]
+  },
+  {
+    "market": "MILAN MORNING",
+    "date": "30-06-2025",
+    "left": ["3", "8", "9"],
+    "center": "54",
+    "right": ["7", "4", "0"]
   }
 ]
