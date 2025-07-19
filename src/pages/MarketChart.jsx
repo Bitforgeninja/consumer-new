@@ -12,7 +12,11 @@ const MarketChart = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
 
-  const parseDate = (str) => new Date(str.split("-").reverse().join("-") + "T00:00:00");
+  const parseDate = (str) => {
+    // Accepts "dd-mm-yyyy" or "dd/mm/yyyy"
+    const parts = str.includes("-") ? str.split("-") : str.split("/");
+    return new Date(`${parts[2]}-${parts[1]}-${parts[0]}T00:00:00`);
+  };
   const formatDate = (date) => date.toLocaleDateString("en-GB");
   const getDayName = (date) =>
     date.toLocaleDateString("en-US", { weekday: "long" });
@@ -20,9 +24,9 @@ const MarketChart = () => {
   useEffect(() => {
     const fetchMarketCharts = async () => {
       try {
-        const res = await fetch("/data/market-charts.json");
+        const res = await fetch("https://backend-pbn5.onrender.com/api/admin/markets/results");
         if (!res.ok) {
-          throw new Error("Chart data file not found.");
+          throw new Error("Chart data API not found.");
         }
         const allData = await res.json();
 
@@ -63,7 +67,7 @@ const MarketChart = () => {
             };
           }
 
-          // Chart data values
+          // Chart data values (from backend API)
           const left = entry.left || ["-", "-", "-"];
           const center = entry.center || "-";
           const right = entry.right || ["-", "-", "-"];
