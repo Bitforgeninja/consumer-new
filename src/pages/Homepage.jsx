@@ -67,9 +67,18 @@ const HomePage = () => {
     fetchData();
   }, []);
 
+  // UPDATED FUNCTION
   const formatMarketResult = (results) => {
-    if (currentHours >= 0 && currentHours < 6) return "***-**-***";
     if (!results) return "xxx-xx-xxx";
+    // If all reset values, show xxx-xx-xxx
+    if (
+      (results.openNumber === "000" || results.openNumber === "xxx") &&
+      (results.closeNumber === "000" || results.closeNumber === "xxx") &&
+      (results.openSingleDigit === 0 || results.openSingleDigit === "x") &&
+      (results.closeSingleDigit === 0 || results.closeSingleDigit === "x")
+    ) {
+      return "xxx-xx-xxx";
+    }
     const open = results.openNumber?.padEnd(3, "x").slice(0, 3) || "xxx";
     const close = results.closeNumber?.padEnd(3, "x").slice(0, 3) || "xxx";
     const jodi =
