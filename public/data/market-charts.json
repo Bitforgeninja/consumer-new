@@ -34,7 +34,6 @@
     "center": "83",
     "right": ["3", "3", "7"]
   },
-
   {
     "market": "KALYAN MORNING",
     "date": "02-06-2025",
@@ -70,7 +69,6 @@
     "center": "71",
     "right": ["7", "0", "3"]
   },
-
   {
     "market": "MADHUR MORNING",
     "date": "03-06-2025",
@@ -106,7 +104,6 @@
     "center": "43",
     "right": ["4", "5", "4"]
   },
-
   {
     "market": "SRIDEVI",
     "date": "04-06-2025",
@@ -142,7 +139,6 @@
     "center": "26",
     "right": ["6", "3", "7"]
   },
-
   {
     "market": "MADHURI",
     "date": "05-06-2025",
@@ -198,9 +194,7 @@
     "left": ["4", "5", "1"],
     "center": "02",
     "right": ["3", "8", "1"]
-  }
-]
-[
+  },
   {
     "market": "SRIDEVI",
     "date": "24-06-2024",
