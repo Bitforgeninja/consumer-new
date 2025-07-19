@@ -10,6 +10,7 @@ const MarketChart = () => {
 
   const [weeklyResults, setWeeklyResults] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const parseDate = (str) => new Date(str.split("-").reverse().join("-") + "T00:00:00");
   const formatDate = (date) => date.toLocaleDateString("en-GB");
@@ -20,7 +21,14 @@ const MarketChart = () => {
     const fetchMarketCharts = async () => {
       try {
         const res = await fetch("/data/market-charts.json");
+        if (!res.ok) {
+          throw new Error("Chart data file not found.");
+        }
         const allData = await res.json();
+
+        if (!Array.isArray(allData)) {
+          throw new Error("Chart data is not a valid array.");
+        }
 
         const filteredData = allData.filter(
           (entry) =>
@@ -70,7 +78,7 @@ const MarketChart = () => {
         setWeeklyResults(sortedWeeks);
         setIsLoading(false);
       } catch (error) {
-        console.error("Error loading chart data", error);
+        setErrorMsg(error.message || "Error loading chart data.");
         setWeeklyResults([]);
         setIsLoading(false);
       }
@@ -132,6 +140,10 @@ const MarketChart = () => {
 
       {isLoading ? (
         <Loader />
+      ) : errorMsg ? (
+        <div className="text-center text-red-400 font-semibold text-lg mb-4">
+          {errorMsg}
+        </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full border-collapse border border-gray-700">
